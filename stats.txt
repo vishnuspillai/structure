@@ -1,0 +1,23 @@
+--- Domain Distribution ---
+domain_region
+intracellular_loop      183
+extracellular_domain    161
+signal_peptide           25
+m1                       17
+Unassigned               15
+m4                       14
+m2                       12
+m3                        9
+
+% in Transmembrane region: 11.93%
+% in Pore region (M2): 2.75%
+
+--- CADD Summary Stats ---
+count    0.0
+mean     NaN
+std      NaN
+min      NaN
+25%      NaN
+50%      NaN
+75%      NaN
+max      NaN

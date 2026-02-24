@@ -5,6 +5,7 @@ import yaml
 import requests
 import json
 import pandas as pd
+import numpy as np
 from typing import Dict, List, Any
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,14 +27,16 @@ def setup_logging(log_file: str) -> logging.Logger:
 
 def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, output_path: str) -> pd.DataFrame:
     """Phase A: Fetch GRCh38 coordinates via /variation API, update chrom, pos and audit AF."""
-    url = "https://rest.ensembl.org/variation/homo_sapiens"
+    url = "https://rest.ensembl.org/variation/homo_sapiens?pops=1"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
     
     rsids = df['rsid'].tolist()
     batch_size = 100
     coord_map = {}
+    af_map = {}
+    alt_map = dict(zip(df['rsid'], df['alt']))
     
-    logger.info(f"Phase A: Batch querying {len(rsids)} RSIDs for coordinate correction.")
+    logger.info(f"Phase A: Batch querying {len(rsids)} RSIDs for coordinate correction and AF repair.")
     for i in range(0, len(rsids), batch_size):
         batch = rsids[i:i+batch_size]
         payload = {"ids": batch}
@@ -57,7 +60,19 @@ def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, outp
                     }
                     break
                     
-    logger.info(f"Phase A: Successfully mapped coordinates for {len(coord_map)} RSIDs.")
+            max_af = np.nan
+            alt_allele = alt_map.get(rsid)
+            for pop in info.get('populations', []):
+                p_name = pop.get('population', '').lower()
+                if ('gnomadg' in p_name or 'gnomade' in p_name) and pop.get('allele') == alt_allele:
+                    freq = pop.get('frequency', pop.get('allele_frequency'))
+                    if freq is not None:
+                        f_val = float(freq)
+                        if pd.isna(max_af) or f_val > max_af:
+                            max_af = f_val
+            af_map[rsid] = max_af
+                    
+    logger.info(f"Phase A: Successfully mapped coordinates and AF for {len(coord_map)} RSIDs.")
     
     # Map back to DataFrame
     df = df.copy()
@@ -66,6 +81,7 @@ def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, outp
     
     df['chrom'] = df['rsid'].apply(lambda x: get_coord(x, 'chrom') or df.loc[df['rsid'] == x, 'chrom'].values[0])
     df['pos'] = df['rsid'].apply(lambda x: get_coord(x, 'pos') or df.loc[df['rsid'] == x, 'pos'].values[0])
+    df['gnomAD_AF'] = df['rsid'].map(af_map)
     
     # Ensure pos is numeric
     df['pos'] = pd.to_numeric(df['pos'], errors='coerce')
