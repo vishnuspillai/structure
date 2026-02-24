@@ -1,0 +1,6 @@
+gene_symbol: "CHRNA7"
+genome_build: "GRCh38"
+af_threshold: 0.001
+consequence_filter: "missense_variant"
+output_dir: "data/processed"
+log_dir: "logs"
