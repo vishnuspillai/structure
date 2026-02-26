@@ -15,12 +15,41 @@ A fully reproducible, modular bioinformatics pipeline to prioritize rare missens
 - `logs/`: Application execution logs.
 - `config/`: Pipeline YAML configuration parameters.
 
-## Setup
-1. Create a virtual environment and install dependencies:
+## Setup and Usage
+
+1. **Environment Setup**: Create a virtual environment and install dependencies:
    ```bash
+   python -m venv venv
+   source venv/bin/activate  # Or venv\Scripts\activate on Windows
    pip install -r requirements.txt
    ```
-2. Execute modules sequentially from the `src/` directory.
+
+2. **Pipeline Execution Workflow**: The framework is deeply modular. Execute the scripts sequentially from the root directory:
+
+   ```bash
+   # Module 1: Extract and filter rare baseline variants
+   python src/module1_variant_mining/variant_mining.py
+   
+   # Module 2: Phase A/B/C Annotations (Fixes coordinates, assigns domains, fetches scores)
+   python src/module2_annotation/annotation_layer.py
+   
+   # Module 3: Structural Mapping against PDB 7KOX
+   python src/module3_spatial/spatial_annotation.py
+   
+   # Module 4: Calculate Priority Scores and Categorize 
+   python src/module4_prioritization/prioritization.py
+   
+   # Module 5: Isolate Mechanistic Distances for the Top 10 variants
+   python src/module5_mechanistic/mechanistic_metrics.py
+   
+   # Module 6: Query NCBI ClinVar and PubMed for Top 10 Evidence
+   python src/module6_clinical/clinical_review.py
+   
+   # Module 7: Validate Feature Enrichment via Fisher Exact Test
+   python src/module7_validation/structural_enrichment_ci.py
+   ```
+
+3. **Outputs**: Track logs in `logs/` and review generated tabular payload datasets in `data/processed/`.
 
 ## Pipeline Version
 **v1.0.0** - First validated structural-genomic prioritization framework release.
