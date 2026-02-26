@@ -1,0 +1,303 @@
+{
+  "7kox": {
+    "UniProt": {
+      "P36544": {
+        "name": "ACHA7_HUMAN",
+        "mappings": [
+          {
+            "entity_id": 1,
+            "chain_id": "A",
+            "struct_asym_id": "A",
+            "unp_start": 24,
+            "unp_end": 371,
+            "start": {
+              "author_residue_number": 1,
+              "author_insertion_code": "",
+              "residue_number": 1
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 348
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "A",
+            "struct_asym_id": "A",
+            "unp_start": 407,
+            "unp_end": 502,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 459
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 554
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "B",
+            "struct_asym_id": "B",
+            "unp_start": 24,
+            "unp_end": 371,
+            "start": {
+              "author_residue_number": 1,
+              "author_insertion_code": "",
+              "residue_number": 1
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 348
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "B",
+            "struct_asym_id": "B",
+            "unp_start": 407,
+            "unp_end": 502,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 459
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 554
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "C",
+            "struct_asym_id": "C",
+            "unp_start": 24,
+            "unp_end": 371,
+            "start": {
+              "author_residue_number": 1,
+              "author_insertion_code": "",
+              "residue_number": 1
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 348
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "C",
+            "struct_asym_id": "C",
+            "unp_start": 407,
+            "unp_end": 502,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 459
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 554
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "D",
+            "struct_asym_id": "D",
+            "unp_start": 24,
+            "unp_end": 371,
+            "start": {
+              "author_residue_number": 1,
+              "author_insertion_code": "",
+              "residue_number": 1
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 348
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "D",
+            "struct_asym_id": "D",
+            "unp_start": 407,
+            "unp_end": 502,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 459
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 554
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "E",
+            "struct_asym_id": "E",
+            "unp_start": 24,
+            "unp_end": 371,
+            "start": {
+              "author_residue_number": 1,
+              "author_insertion_code": "",
+              "residue_number": 1
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 348
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "E",
+            "struct_asym_id": "E",
+            "unp_start": 407,
+            "unp_end": 502,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 459
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 554
+            },
+            "identity": 0.82,
+            "coverage": 0.925
+          }
+        ],
+        "identifier": "ACHA7_HUMAN"
+      },
+      "P0ABE7": {
+        "name": "C562_ECOLX",
+        "mappings": [
+          {
+            "entity_id": 1,
+            "chain_id": "A",
+            "struct_asym_id": "A",
+            "unp_start": 23,
+            "unp_end": 127,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 353
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 457
+            },
+            "identity": 0.96,
+            "coverage": 0.991
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "B",
+            "struct_asym_id": "B",
+            "unp_start": 23,
+            "unp_end": 127,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 353
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 457
+            },
+            "identity": 0.96,
+            "coverage": 0.991
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "C",
+            "struct_asym_id": "C",
+            "unp_start": 23,
+            "unp_end": 127,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 353
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 457
+            },
+            "identity": 0.96,
+            "coverage": 0.991
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "D",
+            "struct_asym_id": "D",
+            "unp_start": 23,
+            "unp_end": 127,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 353
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 457
+            },
+            "identity": 0.96,
+            "coverage": 0.991
+          },
+          {
+            "entity_id": 1,
+            "chain_id": "E",
+            "struct_asym_id": "E",
+            "unp_start": 23,
+            "unp_end": 127,
+            "start": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 353
+            },
+            "end": {
+              "author_residue_number": null,
+              "author_insertion_code": "",
+              "residue_number": 457
+            },
+            "identity": 0.96,
+            "coverage": 0.991
+          }
+        ],
+        "identifier": "C562_ECOLX"
+      }
+    }
+  }
+}
