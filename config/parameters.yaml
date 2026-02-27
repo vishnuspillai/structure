@@ -1,24 +1,24 @@
 af_threshold: 0.001
 consequence_filter: missense_variant
 domains:
-  M1:
-  - 234
-  - 254
-  M2:
-  - 259
-  - 279
-  M3:
-  - 292
-  - 315
-  M4:
-  - 467
-  - 489
   extracellular_domain:
   - 23
   - 233
   intracellular_loop:
   - 316
   - 466
+  m1:
+  - 234
+  - 254
+  m2:
+  - 259
+  - 279
+  m3:
+  - 292
+  - 315
+  m4:
+  - 467
+  - 489
   signal_peptide:
   - 1
   - 22

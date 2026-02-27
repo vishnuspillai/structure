@@ -1,0 +1,34 @@
+Score distribution summary:
+count    354.000000
+mean       3.632768
+std        2.886061
+min        0.000000
+25%        1.000000
+50%        4.000000
+75%        6.000000
+max       10.000000
+
+Count per priority_category:
+priority_category
+Very Low    149
+Low         102
+Medium       94
+High          9
+
+Top 15 variants (rsid, position, domain, score):
+        rsid  protein_position        domain_region  priority_score
+rs1385784801               196 extracellular_domain              10
+rs1901808972                64 extracellular_domain              10
+ rs762682577               259                   M2              10
+rs1398434960                77 extracellular_domain              10
+ rs199802730               265                   M2              10
+ rs200236230               213 extracellular_domain              10
+ rs752642520               277                   M2              10
+rs1307722909               261                   M2              10
+rs2050567895                66 extracellular_domain              10
+ rs201529515                46 extracellular_domain               9
+rs2051808999               240                   M1               9
+rs1446173075               259                   M2               9
+rs1398912540               210 extracellular_domain               9
+ rs764126247               279                   M2               9
+ rs767493351               274                   M2               9

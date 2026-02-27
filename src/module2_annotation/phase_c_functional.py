@@ -18,7 +18,7 @@ vep_data = {}
 alt_map = dict(zip(df['rsid'], df['alt']))
 
 print(f"STEP 1: Batch querying {len(rsids)} RSIDs to VEP for functional scores...")
-cadd_missing = 0
+cadd_missing: int = 0
 for i in range(0, len(rsids), batch_size):
     batch = rsids[i:i+batch_size]
     req_url = f"{url_vep}?CADD=1"
@@ -39,6 +39,7 @@ for i in range(0, len(rsids), batch_size):
         polyphen_pred = None
         
         has_match = False
+        has_cadd = False
         for tc in item.get('transcript_consequences', []):
             if tc.get('transcript_id') == 'ENST00000306901' and tc.get('variant_allele') == alt_allele:
                 if 'sift_score' in tc:
@@ -54,7 +55,7 @@ for i in range(0, len(rsids), batch_size):
                 break
                 
         if not has_cadd:
-            cadd_missing += 1
+            cadd_missing = cadd_missing + 1
             
         if has_match or rid not in vep_data:
             vep_data[rid] = {
