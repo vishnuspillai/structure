@@ -1,7 +1,6 @@
 import pandas as pd
 from scipy.stats import fisher_exact
 from scipy.stats.contingency import odds_ratio
-import numpy as np
 
 df = pd.read_csv('data/processed/chrna7_ranked_variants.csv')
 
@@ -12,16 +11,17 @@ features = {
 }
 
 high_mask = df['priority_category'] == 'High'
+not_high_mask = df['priority_category'] != 'High'
 
 output = ["Feature\tOR\tLower_CI\tUpper_CI\tp-value"]
 for display_name, col_name in features.items():
     if col_name not in df.columns:
         continue
     
-    A = sum((high_mask) & (df[col_name] == True))
-    B = sum((high_mask) & (df[col_name] == False))
-    C = sum((~high_mask) & (df[col_name] == True))
-    D = sum((~high_mask) & (df[col_name] == False))
+    A = len(df[high_mask & (df[col_name] == True)])
+    B = len(df[high_mask & (df[col_name] == False)])
+    C = len(df[not_high_mask & (df[col_name] == True)])
+    D = len(df[not_high_mask & (df[col_name] == False)])
     
     table = [[A, B],
              [C, D]]
