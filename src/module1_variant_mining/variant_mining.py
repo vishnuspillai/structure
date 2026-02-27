@@ -37,13 +37,23 @@ def load_config(config_path: str) -> Dict[str, Any]:
     with open(config_path, 'r') as file:
         return yaml.safe_load(file)
 
+def get_session():
+    session = requests.Session()
+    from urllib3.util.retry import Retry
+    from requests.adapters import HTTPAdapter
+    retries = Retry(total=5, backoff_factor=2, status_forcelist=[ 429, 500, 502, 503, 504 ])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    return session
+
 def get_ensembl_gene_info(symbol: str, logger: logging.Logger) -> tuple[str, str, str]:
     """Fetches Gene ID, Canonical Transcript ID, and Translation ID from Ensembl."""
     url = f"https://rest.ensembl.org/lookup/symbol/homo_sapiens/{symbol}?expand=1"
     headers = {"Content-Type": "application/json"}
     
     logger.info(f"API Call: Fetching target gene {symbol} details from {url}")
-    response = requests.get(url, headers=headers)
+    
+    session = get_session()
+    response = session.get(url, headers=headers, timeout=30)
     response.raise_for_status()
     data = response.json()
     
@@ -69,7 +79,8 @@ def get_transcript_variants(translation_id: str, logger: logging.Logger) -> List
     headers = {"Content-Type": "application/json"}
     
     logger.info(f"API Call: Fetching transcript variants from {url}")
-    response = requests.get(url, headers=headers)
+    session = get_session()
+    response = session.get(url, headers=headers, timeout=30)
     response.raise_for_status()
     variants = response.json()
     logger.info(f"Fetched {len(variants)} overlapping sequences for {translation_id}")
@@ -83,13 +94,15 @@ def get_variant_gnomad_af(rsids: List[str], logger: logging.Logger) -> Dict[str,
     logger.info(f"API Call: Batch fetching AF for {len(rsids)} RSIDs.")
     af_map = {}
     
+    session = get_session()
+    
     # Ensembl Batch API limits POST payloads
     batch_size = 200
     for i in range(0, len(rsids), batch_size):
         batch = rsids[i:i+batch_size]
         payload = {"ids": batch}
         
-        response = requests.post(url, headers=headers, json=payload)
+        response = session.post(url, headers=headers, json=payload, timeout=30)
         
         if response.status_code != 200:
             logger.warning(f"Failed to fetch batch {i}-{i+batch_size}: {response.status_code}")
