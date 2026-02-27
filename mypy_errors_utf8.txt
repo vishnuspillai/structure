@@ -1,0 +1,32 @@
+﻿src\module2_annotation\phase_b_structural.py:1: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module2_annotation\phase_b_structural.py:2: error: Library stubs not installed for "requests"  [import-untyped]
+src\module2_annotation\phase_b_structural.py:3: error: Library stubs not installed for "yaml"  [import-untyped]
+src\module1_variant_mining\variant_mining.py:4: error: Library stubs not installed for "yaml"  [import-untyped]
+src\module1_variant_mining\variant_mining.py:4: note: Hint: "python3 -m pip install types-PyYAML"
+src\module1_variant_mining\variant_mining.py:4: note: (or run "mypy --install-types" to install all missing stub packages)
+src\module1_variant_mining\variant_mining.py:4: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+src\module1_variant_mining\variant_mining.py:5: error: Library stubs not installed for "requests"  [import-untyped]
+src\module1_variant_mining\variant_mining.py:5: note: Hint: "python3 -m pip install types-requests"
+src\module1_variant_mining\variant_mining.py:6: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module1_variant_mining\variant_mining.py:6: note: Hint: "python3 -m pip install pandas-stubs"
+src\module6_clinical\clinical_review.py:1: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module6_clinical\clinical_review.py:2: error: Library stubs not installed for "requests"  [import-untyped]
+src\module6_clinical\clinical_review.py:8: error: Incompatible types in assignment (expression has type "str", variable has type "None")  [assignment]
+src\module7_validation\structural_enrichment_ci.py:1: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module7_validation\structural_enrichment_ci.py:2: error: Library stubs not installed for "scipy.stats"  [import-untyped]
+src\module7_validation\structural_enrichment_ci.py:3: error: Library stubs not installed for "scipy.stats.contingency"  [import-untyped]
+src\module7_validation\structural_enrichment.py:1: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module7_validation\structural_enrichment.py:2: error: Library stubs not installed for "scipy.stats"  [import-untyped]
+src\module7_validation\structural_enrichment.py:2: note: Hint: "python3 -m pip install scipy-stubs"
+src\module4_prioritization\prioritization.py:1: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module2_annotation\phase_c_functional.py:1: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module2_annotation\phase_c_functional.py:2: error: Library stubs not installed for "requests"  [import-untyped]
+src\module2_annotation\annotation_layer.py:4: error: Library stubs not installed for "yaml"  [import-untyped]
+src\module2_annotation\annotation_layer.py:5: error: Library stubs not installed for "requests"  [import-untyped]
+src\module2_annotation\annotation_layer.py:7: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module5_mechanistic\mechanistic_metrics.py:1: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module5_mechanistic\mechanistic_metrics.py:3: error: Library stubs not installed for "requests"  [import-untyped]
+src\module3_spatial\spatial_annotation.py:2: error: Library stubs not installed for "requests"  [import-untyped]
+src\module3_spatial\spatial_annotation.py:3: error: Library stubs not installed for "pandas"  [import-untyped]
+src\module3_spatial\spatial_annotation.py:12: error: Incompatible types in assignment (expression has type "def _create_unverified_context(protocol: int | None = ..., *, cert_reqs: int = ..., check_hostname: bool = ..., purpose: Purpose = ..., certfile: str | bytes | PathLike[str] | PathLike[bytes] | None = ..., keyfile: str | bytes | PathLike[str] | PathLike[bytes] | None = ..., cafile: str | bytes | PathLike[str] | PathLike[bytes] | None = ..., capath: str | bytes | PathLike[str] | PathLike[bytes] | None = ..., cadata: str | Buffer | None = ...) -> SSLContext", variable has type "def create_default_context(purpose: Purpose = ..., *, cafile: str | bytes | PathLike[str] | PathLike[bytes] | None = ..., capath: str | bytes | PathLike[str] | PathLike[bytes] | None = ..., cadata: str | Buffer | None = ...) -> SSLContext")  [assignment]
+Found 25 errors in 10 files (checked 10 source files)

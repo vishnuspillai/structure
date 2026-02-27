@@ -1,6 +1,5 @@
 import pandas as pd
 import requests
-import xml.etree.ElementTree as ET
 from Bio import Entrez
 import time
 import urllib.parse
@@ -8,8 +7,11 @@ import os
 
 Entrez.email = "vishnu@example.com"  # Please configure
 
-df = pd.read_csv('data/processed/chrna7_top10_structural_metrics.csv')
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
 
+input_csv = os.path.join(PROJECT_ROOT, 'data', 'processed', 'chrna7_top10_structural_metrics.csv')
+df = pd.read_csv(input_csv)
 def query_clinvar(rsid):
     url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term={rsid}&retmode=json"
     r = requests.get(url)
@@ -63,7 +65,7 @@ for index, row in df.iterrows():
 
 res_df = pd.DataFrame(results)
 
-output_path = 'data/processed/chrna7_top10_clinical_lit.csv'
+output_path = os.path.join(PROJECT_ROOT, 'data', 'processed', 'chrna7_top10_clinical_lit.csv')
 res_df.to_csv(output_path, index=False)
 
 pd.set_option('display.max_columns', None)

@@ -1,0 +1,278 @@
+﻿src\module1_variant_mining\variant_mining.py:12:1: E302 expected 2 blank lines, found 1
+src\module1_variant_mining\variant_mining.py:26:80: E501 line too long (89 > 79 characters)
+src\module1_variant_mining\variant_mining.py:35:1: E302 expected 2 blank lines, found 1
+src\module1_variant_mining\variant_mining.py:40:1: E302 expected 2 blank lines, found 1
+src\module1_variant_mining\variant_mining.py:40:80: E501 line too long (87 > 79 characters)
+src\module1_variant_mining\variant_mining.py:41:80: E501 line too long (84 > 79 characters)
+src\module1_variant_mining\variant_mining.py:42:80: E501 line too long (82 > 79 characters)
+src\module1_variant_mining\variant_mining.py:44:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:49:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:53:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:59:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:62:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:63:80: E501 line too long (123 > 79 characters)
+src\module1_variant_mining\variant_mining.py:66:1: E302 expected 2 blank lines, found 1
+src\module1_variant_mining\variant_mining.py:66:80: E501 line too long (97 > 79 characters)
+src\module1_variant_mining\variant_mining.py:68:80: E501 line too long (103 > 79 characters)
+src\module1_variant_mining\variant_mining.py:70:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:75:80: E501 line too long (86 > 79 characters)
+src\module1_variant_mining\variant_mining.py:78:1: E302 expected 2 blank lines, found 1
+src\module1_variant_mining\variant_mining.py:78:80: E501 line too long (88 > 79 characters)
+src\module1_variant_mining\variant_mining.py:79:80: E501 line too long (87 > 79 characters)
+src\module1_variant_mining\variant_mining.py:81:80: E501 line too long (80 > 79 characters)
+src\module1_variant_mining\variant_mining.py:82:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:85:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:91:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:93:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:95:80: E501 line too long (95 > 79 characters)
+src\module1_variant_mining\variant_mining.py:97:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:99:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:102:18: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:102:18: E117 over-indented
+src\module1_variant_mining\variant_mining.py:103:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:106:16: E114 indentation is not a multiple of 4 (comment)
+src\module1_variant_mining\variant_mining.py:107:16: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:108:20: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:109:24: E114 indentation is not a multiple of 4 (comment)
+src\module1_variant_mining\variant_mining.py:110:24: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:111:24: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:112:28: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:113:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:115:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:119:1: E302 expected 2 blank lines, found 1
+src\module1_variant_mining\variant_mining.py:119:80: E501 line too long (152 > 79 characters)
+src\module1_variant_mining\variant_mining.py:122:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:128:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:131:14: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:131:14: E117 over-indented
+src\module1_variant_mining\variant_mining.py:132:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:140:80: E501 line too long (95 > 79 characters)
+src\module1_variant_mining\variant_mining.py:141:80: E501 line too long (96 > 79 characters)
+src\module1_variant_mining\variant_mining.py:142:50: E261 at least two spaces before inline comment
+src\module1_variant_mining\variant_mining.py:142:80: E501 line too long (86 > 79 characters)
+src\module1_variant_mining\variant_mining.py:143:80: E501 line too long (218 > 79 characters)
+src\module1_variant_mining\variant_mining.py:147:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:150:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:152:10: E111 indentation is not a multiple of 4
+src\module1_variant_mining\variant_mining.py:152:10: E117 over-indented
+src\module1_variant_mining\variant_mining.py:153:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:157:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:159:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:162:80: E501 line too long (88 > 79 characters)
+src\module1_variant_mining\variant_mining.py:163:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:166:1: E302 expected 2 blank lines, found 1
+src\module1_variant_mining\variant_mining.py:167:80: E501 line too long (91 > 79 characters)
+src\module1_variant_mining\variant_mining.py:170:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:174:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:179:80: E501 line too long (87 > 79 characters)
+src\module1_variant_mining\variant_mining.py:180:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:182:80: E501 line too long (91 > 79 characters)
+src\module1_variant_mining\variant_mining.py:184:80: E501 line too long (94 > 79 characters)
+src\module1_variant_mining\variant_mining.py:185:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:188:80: E501 line too long (99 > 79 characters)
+src\module1_variant_mining\variant_mining.py:191:1: W293 blank line contains whitespace
+src\module1_variant_mining\variant_mining.py:196:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module2_annotation\annotation_layer.py:6:1: F401 'json' imported but unused
+src\module2_annotation\annotation_layer.py:9:1: F401 'typing.List' imported but unused
+src\module2_annotation\annotation_layer.py:13:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\annotation_layer.py:21:80: E501 line too long (89 > 79 characters)
+src\module2_annotation\annotation_layer.py:28:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\annotation_layer.py:28:80: E501 line too long (110 > 79 characters)
+src\module2_annotation\annotation_layer.py:29:80: E501 line too long (95 > 79 characters)
+src\module2_annotation\annotation_layer.py:31:80: E501 line too long (80 > 79 characters)
+src\module2_annotation\annotation_layer.py:32:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:38:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:39:80: E501 line too long (103 > 79 characters)
+src\module2_annotation\annotation_layer.py:45:80: E501 line too long (90 > 79 characters)
+src\module2_annotation\annotation_layer.py:47:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:58:80: E501 line too long (117 > 79 characters)
+src\module2_annotation\annotation_layer.py:59:80: E501 line too long (117 > 79 characters)
+src\module2_annotation\annotation_layer.py:62:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:67:80: E501 line too long (100 > 79 characters)
+src\module2_annotation\annotation_layer.py:74:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:75:80: E501 line too long (95 > 79 characters)
+src\module2_annotation\annotation_layer.py:76:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:79:5: E306 expected 1 blank line before a nested definition, found 0
+src\module2_annotation\annotation_layer.py:81:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:82:80: E501 line too long (113 > 79 characters)
+src\module2_annotation\annotation_layer.py:83:80: E501 line too long (107 > 79 characters)
+src\module2_annotation\annotation_layer.py:85:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:88:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:96:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:100:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:102:80: E501 line too long (126 > 79 characters)
+src\module2_annotation\annotation_layer.py:105:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:111:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\annotation_layer.py:111:80: E501 line too long (86 > 79 characters)
+src\module2_annotation\annotation_layer.py:117:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:120:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:126:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:139:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:143:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\annotation_layer.py:143:80: E501 line too long (107 > 79 characters)
+src\module2_annotation\annotation_layer.py:145:26: E261 at least two spaces before inline comment
+src\module2_annotation\annotation_layer.py:147:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:150:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:155:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:164:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:170:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:173:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\annotation_layer.py:173:80: E501 line too long (106 > 79 characters)
+src\module2_annotation\annotation_layer.py:176:80: E501 line too long (80 > 79 characters)
+src\module2_annotation\annotation_layer.py:177:5: F841 local variable 'params' is assigned to but never used
+src\module2_annotation\annotation_layer.py:178:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:182:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:187:80: E501 line too long (93 > 79 characters)
+src\module2_annotation\annotation_layer.py:190:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:192:80: E501 line too long (90 > 79 characters)
+src\module2_annotation\annotation_layer.py:194:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:201:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:202:80: E501 line too long (106 > 79 characters)
+src\module2_annotation\annotation_layer.py:209:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:210:80: E501 line too long (94 > 79 characters)
+src\module2_annotation\annotation_layer.py:214:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:215:80: E501 line too long (88 > 79 characters)
+src\module2_annotation\annotation_layer.py:221:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:223:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:226:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:231:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:236:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:241:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:246:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:254:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\annotation_layer.py:255:80: E501 line too long (91 > 79 characters)
+src\module2_annotation\annotation_layer.py:258:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:261:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:263:80: E501 line too long (94 > 79 characters)
+src\module2_annotation\annotation_layer.py:265:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:267:80: E501 line too long (106 > 79 characters)
+src\module2_annotation\annotation_layer.py:268:80: E501 line too long (84 > 79 characters)
+src\module2_annotation\annotation_layer.py:269:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:271:80: E501 line too long (81 > 79 characters)
+src\module2_annotation\annotation_layer.py:272:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:274:80: E501 line too long (99 > 79 characters)
+src\module2_annotation\annotation_layer.py:275:9: F841 local variable 'df_final' is assigned to but never used
+src\module2_annotation\annotation_layer.py:275:80: E501 line too long (83 > 79 characters)
+src\module2_annotation\annotation_layer.py:276:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:278:1: W293 blank line contains whitespace
+src\module2_annotation\annotation_layer.py:283:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module2_annotation\phase_b_structural.py:4:1: F401 'os' imported but unused
+src\module2_annotation\phase_b_structural.py:6:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\phase_b_structural.py:11:1: W293 blank line contains whitespace
+src\module2_annotation\phase_b_structural.py:14:1: W293 blank line contains whitespace
+src\module2_annotation\phase_b_structural.py:17:80: E501 line too long (93 > 79 characters)
+src\module2_annotation\phase_b_structural.py:19:1: W293 blank line contains whitespace
+src\module2_annotation\phase_b_structural.py:23:1: W293 blank line contains whitespace
+src\module2_annotation\phase_b_structural.py:35:1: W293 blank line contains whitespace
+src\module2_annotation\phase_b_structural.py:38:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module2_annotation\phase_b_structural.py:53:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\phase_b_structural.py:62:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module2_annotation\phase_c_functional.py:3:1: F401 'json' imported but unused
+src\module2_annotation\phase_c_functional.py:20:80: E501 line too long (83 > 79 characters)
+src\module2_annotation\phase_c_functional.py:27:80: E501 line too long (89 > 79 characters)
+src\module2_annotation\phase_c_functional.py:29:1: W293 blank line contains whitespace
+src\module2_annotation\phase_c_functional.py:34:1: W293 blank line contains whitespace
+src\module2_annotation\phase_c_functional.py:40:1: W293 blank line contains whitespace
+src\module2_annotation\phase_c_functional.py:43:80: E501 line too long (103 > 79 characters)
+src\module2_annotation\phase_c_functional.py:55:1: W293 blank line contains whitespace
+src\module2_annotation\phase_c_functional.py:58:1: W293 blank line contains whitespace
+src\module2_annotation\phase_c_functional.py:70:80: E501 line too long (90 > 79 characters)
+src\module2_annotation\phase_c_functional.py:73:80: E501 line too long (289 > 79 characters)
+src\module2_annotation\phase_c_functional.py:77:1: E302 expected 2 blank lines, found 1
+src\module2_annotation\phase_c_functional.py:80:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module2_annotation\phase_c_functional.py:102:80: E501 line too long (96 > 79 characters)
+src\module2_annotation\phase_c_functional.py:106:80: E501 line too long (106 > 79 characters)
+src\module2_annotation\phase_c_functional.py:110:80: E501 line too long (106 > 79 characters)
+src\module2_annotation\phase_c_functional.py:114:80: E501 line too long (88 > 79 characters)
+src\module3_spatial\spatial_annotation.py:4:1: F401 'numpy as np' imported but unused
+src\module3_spatial\spatial_annotation.py:7:1: F401 'urllib.request' imported but unused
+src\module3_spatial\spatial_annotation.py:26:80: E501 line too long (87 > 79 characters)
+src\module3_spatial\spatial_annotation.py:45:62: W291 trailing whitespace
+src\module3_spatial\spatial_annotation.py:64:80: E501 line too long (112 > 79 characters)
+src\module3_spatial\spatial_annotation.py:72:1: W293 blank line contains whitespace
+src\module3_spatial\spatial_annotation.py:77:80: E501 line too long (104 > 79 characters)
+src\module3_spatial\spatial_annotation.py:86:80: E501 line too long (94 > 79 characters)
+src\module3_spatial\spatial_annotation.py:88:80: E501 line too long (89 > 79 characters)
+src\module3_spatial\spatial_annotation.py:102:80: E501 line too long (88 > 79 characters)
+src\module3_spatial\spatial_annotation.py:103:80: E501 line too long (120 > 79 characters)
+src\module3_spatial\spatial_annotation.py:105:80: E501 line too long (82 > 79 characters)
+src\module3_spatial\spatial_annotation.py:108:1: E302 expected 2 blank lines, found 1
+src\module3_spatial\spatial_annotation.py:111:1: E302 expected 2 blank lines, found 1
+src\module3_spatial\spatial_annotation.py:112:32: E701 multiple statements on one line (colon)
+src\module3_spatial\spatial_annotation.py:114:45: E701 multiple statements on one line (colon)
+src\module3_spatial\spatial_annotation.py:124:1: E302 expected 2 blank lines, found 1
+src\module3_spatial\spatial_annotation.py:125:32: E701 multiple statements on one line (colon)
+src\module3_spatial\spatial_annotation.py:127:50: E701 multiple statements on one line (colon)
+src\module3_spatial\spatial_annotation.py:137:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module3_spatial\spatial_annotation.py:137:80: E501 line too long (114 > 79 characters)
+src\module3_spatial\spatial_annotation.py:138:80: E501 line too long (108 > 79 characters)
+src\module3_spatial\spatial_annotation.py:140:80: E501 line too long (98 > 79 characters)
+src\module4_prioritization\prioritization.py:3:1: F401 'os' imported but unused
+src\module4_prioritization\prioritization.py:7:1: E302 expected 2 blank lines, found 1
+src\module4_prioritization\prioritization.py:21:80: E501 line too long (89 > 79 characters)
+src\module4_prioritization\prioritization.py:26:1: W293 blank line contains whitespace
+src\module4_prioritization\prioritization.py:27:80: E501 line too long (80 > 79 characters)
+src\module4_prioritization\prioritization.py:30:1: W293 blank line contains whitespace
+src\module4_prioritization\prioritization.py:44:1: W293 blank line contains whitespace
+src\module4_prioritization\prioritization.py:50:1: W293 blank line contains whitespace
+src\module4_prioritization\prioritization.py:54:1: W293 blank line contains whitespace
+src\module4_prioritization\prioritization.py:57:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module4_prioritization\prioritization.py:59:1: E302 expected 2 blank lines, found 1
+src\module4_prioritization\prioritization.py:60:15: E701 multiple statements on one line (colon)
+src\module4_prioritization\prioritization.py:61:19: E701 multiple statements on one line (colon)
+src\module4_prioritization\prioritization.py:62:19: E701 multiple statements on one line (colon)
+src\module4_prioritization\prioritization.py:65:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module4_prioritization\prioritization.py:78:80: E501 line too long (119 > 79 characters)
+src\module4_prioritization\prioritization.py:79:1: W391 blank line at end of file
+src\module5_mechanistic\mechanistic_metrics.py:4:1: F401 'os' imported but unused
+src\module5_mechanistic\mechanistic_metrics.py:51:80: E501 line too long (108 > 79 characters)
+src\module5_mechanistic\mechanistic_metrics.py:73:80: E501 line too long (129 > 79 characters)
+src\module5_mechanistic\mechanistic_metrics.py:74:80: E501 line too long (133 > 79 characters)
+src\module5_mechanistic\mechanistic_metrics.py:76:1: E302 expected 2 blank lines, found 1
+src\module5_mechanistic\mechanistic_metrics.py:79:1: W293 blank line contains whitespace
+src\module5_mechanistic\mechanistic_metrics.py:82:1: W293 blank line contains whitespace
+src\module5_mechanistic\mechanistic_metrics.py:86:1: W293 blank line contains whitespace
+src\module5_mechanistic\mechanistic_metrics.py:91:1: W293 blank line contains whitespace
+src\module5_mechanistic\mechanistic_metrics.py:95:1: W293 blank line contains whitespace
+src\module5_mechanistic\mechanistic_metrics.py:96:80: E501 line too long (121 > 79 characters)
+src\module5_mechanistic\mechanistic_metrics.py:97:80: E501 line too long (129 > 79 characters)
+src\module5_mechanistic\mechanistic_metrics.py:98:1: W293 blank line contains whitespace
+src\module5_mechanistic\mechanistic_metrics.py:103:1: W293 blank line contains whitespace
+src\module5_mechanistic\mechanistic_metrics.py:106:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module5_mechanistic\mechanistic_metrics.py:107:80: E501 line too long (81 > 79 characters)
+src\module6_clinical\clinical_review.py:13:80: E501 line too long (98 > 79 characters)
+src\module6_clinical\clinical_review.py:15:1: E302 expected 2 blank lines, found 0
+src\module6_clinical\clinical_review.py:16:80: E501 line too long (107 > 79 characters)
+src\module6_clinical\clinical_review.py:22:80: E501 line too long (129 > 79 characters)
+src\module6_clinical\clinical_review.py:31:1: W293 blank line contains whitespace
+src\module6_clinical\clinical_review.py:36:1: W293 blank line contains whitespace
+src\module6_clinical\clinical_review.py:40:1: E302 expected 2 blank lines, found 1
+src\module6_clinical\clinical_review.py:43:80: E501 line too long (109 > 79 characters)
+src\module6_clinical\clinical_review.py:49:1: E305 expected 2 blank lines after class or function definition, found 1
+src\module6_clinical\clinical_review.py:53:1: W293 blank line contains whitespace
+src\module6_clinical\clinical_review.py:56:1: W293 blank line contains whitespace
+src\module6_clinical\clinical_review.py:64:20: E261 at least two spaces before inline comment
+src\module6_clinical\clinical_review.py:68:80: E501 line too long (94 > 79 characters)
+src\module7_validation\structural_enrichment.py:3:1: F401 'numpy as np' imported but unused
+src\module7_validation\structural_enrichment.py:9:38: E261 at least two spaces before inline comment
+src\module7_validation\structural_enrichment.py:20:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment.py:24:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment.py:25:41: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src\module7_validation\structural_enrichment.py:26:41: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+src\module7_validation\structural_enrichment.py:27:42: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src\module7_validation\structural_enrichment.py:28:42: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+src\module7_validation\structural_enrichment.py:29:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment.py:32:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment.py:34:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment_ci.py:4:1: F401 'numpy as np' imported but unused
+src\module7_validation\structural_enrichment_ci.py:20:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment_ci.py:21:41: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src\module7_validation\structural_enrichment_ci.py:22:41: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+src\module7_validation\structural_enrichment_ci.py:23:42: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+src\module7_validation\structural_enrichment_ci.py:24:42: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+src\module7_validation\structural_enrichment_ci.py:25:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment_ci.py:28:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment_ci.py:30:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment_ci.py:34:1: W293 blank line contains whitespace
+src\module7_validation\structural_enrichment_ci.py:35:80: E501 line too long (92 > 79 characters)
+src\module7_validation\structural_enrichment_ci.py:39:80: E501 line too long (81 > 79 characters)
