@@ -104,6 +104,12 @@ def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, outp
         sys.exit(1)
         
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    # Rare AF filtering: drop variants where updated AF is > 0.001
+    original_count = len(df)
+    df = df[(df['gnomAD_AF'].isna()) | (df['gnomAD_AF'] < 0.001)].copy()
+    logger.info(f"Phase A: AF re-filtering removed {original_count - len(df)} variants > 0.001 AF.")
+    
     df.to_csv(output_path, index=False)
     logger.info(f"Phase A: Corrected CSV saved to {output_path}")
     return df
@@ -180,6 +186,8 @@ def phase_c_functional_scores(df: pd.DataFrame, logger: logging.Logger, output_p
     batch_size = 100
     vep_map = {}
     
+    alt_map = dict(zip(df['rsid'], df['alt']))
+    
     logger.info(f"Phase C: Batch querying {len(rsids)} RSIDs to VEP for CADD.")
     for i in range(0, len(rsids), batch_size):
         batch = rsids[i:i+batch_size]
@@ -194,30 +202,50 @@ def phase_c_functional_scores(df: pd.DataFrame, logger: logging.Logger, output_p
             
         data = res.json()
         for item in data:
-            rsid = item.get('id')
+            rid = item.get('input') or item.get('id')
+            alt_allele = alt_map.get(rid)
+            
             cadd_phred = None
             sift = None
+            sift_pred = None
             polyphen = None
+            polyphen_pred = None
             
-            # VEP returns multiple transcript consequences. Try to grab the max or one matching canonical.
+            has_match = False
             for tc in item.get('transcript_consequences', []):
-                # SIFT/PolyPhen
-                if 'sift_score' in tc and sift is None:
-                    sift = tc.get('sift_score')
-                if 'polyphen_score' in tc and polyphen is None:
-                    polyphen = tc.get('polyphen_score')
+                if tc.get('transcript_id') == 'ENST00000306901' and tc.get('variant_allele') == alt_allele:
+                    if 'sift_score' in tc:
+                        sift = tc.get('sift_score')
+                        sift_pred = tc.get('sift_prediction')
+                    if 'polyphen_score' in tc:
+                        polyphen = tc.get('polyphen_score')
+                        polyphen_pred = tc.get('polyphen_prediction')
+                    if 'cadd_phred' in tc:
+                        cadd_phred = tc.get('cadd_phred')
+                    has_match = True
+                    break
                     
-            if 'transcript_consequences' in item and len(item['transcript_consequences']) > 0:
-                tc = item['transcript_consequences'][0]
-                if 'cadd_phred' in tc:
-                    cadd_phred = tc.get('cadd_phred')
-            
-            # Note: Conservation not cleanly returned by VEP ID without specific plugins
-            vep_map[rsid] = {
-                'cadd_phred': cadd_phred,
-                'sift': sift,
-                'polyphen': polyphen
-            }
+            # Fallback if no matching transcript was found
+            if not has_match:
+                for tc in item.get('transcript_consequences', []):
+                    if tc.get('variant_allele') == alt_allele:
+                        if 'sift_score' in tc and sift is None:
+                            sift = tc.get('sift_score')
+                            sift_pred = tc.get('sift_prediction')
+                        if 'polyphen_score' in tc and polyphen is None:
+                            polyphen = tc.get('polyphen_score')
+                            polyphen_pred = tc.get('polyphen_prediction')
+                        if 'cadd_phred' in tc:
+                            cadd_phred = tc.get('cadd_phred')
+                            
+            if rid not in vep_map or has_match:
+                vep_map[rid] = {
+                    'cadd_phred': cadd_phred,
+                    'sift': sift,
+                    'sift_pred': sift_pred,
+                    'polyphen': polyphen,
+                    'polyphen_pred': polyphen_pred
+                }
             
     print("Conservation not returned via VEP; requires region endpoint.")
     
@@ -227,7 +255,9 @@ def phase_c_functional_scores(df: pd.DataFrame, logger: logging.Logger, output_p
     df = df.copy()
     df['cadd_phred'] = df['rsid'].apply(lambda x: get_vep(x, 'cadd_phred'))
     df['sift_score'] = df['rsid'].apply(lambda x: get_vep(x, 'sift'))
+    df['sift_pred'] = df['rsid'].apply(lambda x: get_vep(x, 'sift_pred'))
     df['polyphen_score'] = df['rsid'].apply(lambda x: get_vep(x, 'polyphen'))
+    df['polyphen_pred'] = df['rsid'].apply(lambda x: get_vep(x, 'polyphen_pred'))
     
     # Save output
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

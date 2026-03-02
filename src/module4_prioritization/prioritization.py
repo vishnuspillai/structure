@@ -7,7 +7,7 @@ df = pd.read_csv('data/processed/chrna7_missense_spatial_annotated.csv')
 def compute_score(row):
     score = 0
     # Population
-    af = row.get('AF', np.nan)
+    af = row.get('gnomAD_AF', np.nan)
     if pd.notna(af):
         if af < 1e-5:
             score += 2

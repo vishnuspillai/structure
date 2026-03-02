@@ -77,7 +77,7 @@ for m in unp_mappings:
             print(f"Warning: Segment mismatch - UNP {unp_start}-{unp_end} vs PDB {pdb_start}-{pdb_end}")
 
 
-df = pd.read_csv('data/processed/chrna7_missense_full_annotated.csv')
+df = pd.read_csv('data/processed/chrna7_missense_annotated.csv')
 variant_positions = df['protein_position'].dropna().astype(int).unique()
 
 mappable = [p for p in variant_positions if p in uniprot_to_pdb]
