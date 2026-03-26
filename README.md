@@ -58,3 +58,30 @@ git clone https://github.com/vishnuspillai/structure.git
 cd STRUCT-X
 pip install -r requirements.txt
 ```
+
+---
+
+## ⌨️ Running Locally
+
+### 1. Start the Backend API
+The backend handles pipeline orchestration and data serving.
+```bash
+python src/api/main.py
+```
+The API will be available at `http://localhost:8000`.
+
+### 2. Start the Frontend Dashboard
+The frontend provides the interactive visualization and control panel.
+```bash
+cd ui
+npm install
+npm run dev
+```
+The dashboard will be available at `http://localhost:5173`.
+
+### 3. CLI Execution (Alternative)
+You can also run the full pipeline directly from the command line:
+```bash
+python run_pipeline.py
+```
+Configure your parameters in `config/parameters.yaml` before running.
