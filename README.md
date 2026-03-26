@@ -1,6 +1,6 @@
 # STRUCT-X: Structure-Aware Prioritization of Rare Missense Variants
 
-## 🚀 Overview
+##  Overview
 
 STRUCT-X is a generalized computational framework for prioritizing rare missense variants by integrating:
 
@@ -12,7 +12,7 @@ Unlike conventional pipelines that rely solely on sequence-based predictions, ST
 
 ---
 
-## 🧠 Key Insight
+##  Key Insight
 
 We demonstrate that:
 
@@ -20,7 +20,7 @@ We demonstrate that:
 
 ---
 
-## ⚙️ Features
+##  Features
 
 - ✅ Gene-agnostic variant mining (Ensembl API)
 - ✅ Allele-specific VEP annotation (CADD, SIFT, PolyPhen)
@@ -37,7 +37,7 @@ We demonstrate that:
 
 ---
 
-## 🧪 Validation Summary
+##  Validation Summary
 
 STRUCT-X was validated across structurally distinct proteins:
 
@@ -51,7 +51,7 @@ This demonstrates that structural enrichment is **protein-dependent**, not algor
 
 ---
 
-## 🖥️ Installation
+##  Installation
 
 ```bash
 git clone https://github.com/vishnuspillai/structure.git
