@@ -1,7 +1,0 @@
-﻿src/module1_variant_mining/variant_mining.py
-src/module2_annotation/annotation_layer.py
-src/module2_annotation/phase_c_functional.py
-src/module3_spatial/spatial_annotation.py
-src/module6_clinical/clinical_review.py
-src/module7_validation/structural_enrichment.py
-src/module7_validation/structural_enrichment_ci.py

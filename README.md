@@ -1,55 +1,60 @@
-# CHRNA7 Variant Structural Prioritization Framework
+# STRUCT-X: Structure-Aware Prioritization of Rare Missense Variants
 
-A fully reproducible, modular bioinformatics pipeline to prioritize rare missense variants in the human CHRNA7 gene using public datasets (Ensembl, UniProt, RCSB PDB, ClinVar, PubMed).
+## 🚀 Overview
 
-## Project Structure
-- `data/`: Raw downloaded data and pipeline processed files.
-- `src/`: Modular codebase encompassing 7 core pipeline stages.
-  - `module1_variant_mining`: Retrieve variants from Ensembl REST API and filter by gnomAD AF < 0.001.
-  - `module2_annotation`: Validate mapping, reconstruct domain bounds, and batch query CADD/SIFT/PolyPhen via VEP.
-  - `module3_spatial`: Align subset of variables to 7KOX structure via PDBe SIFTS to compute mapping bounds.
-  - `module4_prioritization`: Assign scoring matrices scaling structurally critical elements and pathogenic functional predictions.
-  - `module5_mechanistic`: Compute high-precision 3D structural boundaries to ligands, chains, and overall center.
-  - `module6_clinical`: Review clinical traits across ClinVar and map to PubMed literature presence.
-  - `module7_validation`: Run rigorous Fisher Exact Tests evaluating pipeline feature enrichment accuracy against priority ranking.
-- `logs/`: Application execution logs.
-- `config/`: Pipeline YAML configuration parameters.
+STRUCT-X is a generalized computational framework for prioritizing rare missense variants by integrating:
 
-## Setup and Usage
+- Population allele frequency (gnomAD)
+- Functional prediction scores (CADD, SIFT, PolyPhen)
+- Three-dimensional structural context (PDB)
 
-1. **Environment Setup**: Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Or venv\Scripts\activate on Windows
-   pip install -r requirements.txt
-   ```
+Unlike conventional pipelines that rely solely on sequence-based predictions, STRUCT-X incorporates protein structure to identify variants enriched in functionally critical regions.
 
-2. **Pipeline Execution Workflow**: The framework is deeply modular. Execute the scripts sequentially from the root directory:
+---
 
-   ```bash
-   # Module 1: Extract and filter rare baseline variants
-   python src/module1_variant_mining/variant_mining.py
-   
-   # Module 2: Phase A/B/C Annotations (Fixes coordinates, assigns domains, fetches scores)
-   python src/module2_annotation/annotation_layer.py
-   
-   # Module 3: Structural Mapping against PDB 7KOX
-   python src/module3_spatial/spatial_annotation.py
-   
-   # Module 4: Calculate Priority Scores and Categorize 
-   python src/module4_prioritization/prioritization.py
-   
-   # Module 5: Isolate Mechanistic Distances for the Top 10 variants
-   python src/module5_mechanistic/mechanistic_metrics.py
-   
-   # Module 6: Query NCBI ClinVar and PubMed for Top 10 Evidence
-   python src/module6_clinical/clinical_review.py
-   
-   # Module 7: Validate Feature Enrichment via Fisher Exact Test
-   python src/module7_validation/structural_enrichment_ci.py
-   ```
+## 🧠 Key Insight
 
-3. **Outputs**: Track logs in `logs/` and review generated tabular payload datasets in `data/processed/`.
+We demonstrate that:
 
-## Pipeline Version
-**v1.0.0** - First validated structural-genomic prioritization framework release.
+> Structural context enables protein-specific prioritization of rare variants, revealing that enrichment in functional regions is not universal but depends on protein architecture.
+
+---
+
+## ⚙️ Features
+
+- ✅ Gene-agnostic variant mining (Ensembl API)
+- ✅ Allele-specific VEP annotation (CADD, SIFT, PolyPhen)
+- ✅ Dynamic UniProt domain parsing
+- ✅ Structure-aware mapping via SIFTS
+- ✅ Spatial annotation:
+  - binding site (ligand-aware / ligand-agnostic)
+  - interface regions
+  - pore/core regions
+- ✅ Robust prioritization scoring framework
+- ✅ Statistical validation (Fisher’s Exact Test with safeguards)
+- ✅ Scalable batching for large genes
+- ✅ Interactive web interface (Mol* visualization)
+
+---
+
+## 🧪 Validation Summary
+
+STRUCT-X was validated across structurally distinct proteins:
+
+| Protein | Result |
+|--------|--------|
+| CHRNA7 | Strong enrichment in binding/pore regions |
+| KCNQ2 | Moderate structural enrichment |
+| SCN1A | No significant enrichment (biologically consistent) |
+
+This demonstrates that structural enrichment is **protein-dependent**, not algorithmically biased.
+
+---
+
+## 🖥️ Installation
+
+```bash
+git clone https://github.com/vishnuspillai/structure.git
+cd STRUCT-X
+pip install -r requirements.txt
+```
