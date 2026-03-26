@@ -45,15 +45,15 @@ def get_session():
     session.mount('https://', HTTPAdapter(max_retries=retries))
     return session
 
-def get_ensembl_gene_info(symbol: str, logger: logging.Logger) -> tuple[str, str, str]:
-    """Fetches Gene ID, Canonical Transcript ID, and Translation ID from Ensembl."""
-    url = f"https://rest.ensembl.org/lookup/symbol/homo_sapiens/{symbol}?expand=1"
+def get_ensembl_gene_info(symbol: str, species: str, logger: logging.Logger) -> tuple[str, str, str, str]:
+    """Fetches Gene ID, Canonical Transcript ID, Translation ID, and Uniprot ID from Ensembl."""
+    url = f"https://rest.ensembl.org/lookup/symbol/{species}/{symbol}?expand=1"
     headers = {"Content-Type": "application/json"}
     
     logger.info(f"API Call: Fetching target gene {symbol} details from {url}")
     
     session = get_session()
-    response = session.get(url, headers=headers, timeout=30)
+    response = session.get(url, headers=headers, timeout=120)
     response.raise_for_status()
     data = response.json()
     
@@ -69,9 +69,24 @@ def get_ensembl_gene_info(symbol: str, logger: logging.Logger) -> tuple[str, str
             
     if not gene_id or not canonical_transcript or not translation_id:
         raise ValueError(f"Could not resolve IDs for {symbol}")
+
+    uniprot_id = None
+    xrefs_url = f"https://rest.ensembl.org/xrefs/id/{translation_id}?external_db=Uniprot/SWISSPROT;content-type=application/json"
+    x_res = session.get(xrefs_url, timeout=120)
+    if x_res.status_code == 200 and len(x_res.json()) > 0:
+        uniprot_id = x_res.json()[0]['primary_id']
+    else:
+        # Fallback to SPTREMBL
+        xrefs_url_tr = f"https://rest.ensembl.org/xrefs/id/{translation_id}?external_db=Uniprot/SPTREMBL;content-type=application/json"
+        x_tr_res = session.get(xrefs_url_tr, timeout=120)
+        if x_tr_res.status_code == 200 and len(x_tr_res.json()) > 0:
+            uniprot_id = x_tr_res.json()[0]['primary_id']
+            
+    if not uniprot_id:
+        raise ValueError(f"Could not resolve Uniprot ID for {translation_id}")
         
-    logger.info(f"Resolved {symbol} to Gene: {gene_id}, Transcript: {canonical_transcript}, Translation: {translation_id}")
-    return gene_id, canonical_transcript, translation_id
+    logger.info(f"Resolved {symbol} to Gene: {gene_id}, Transcript: {canonical_transcript}, Translation: {translation_id}, Uniprot: {uniprot_id}")
+    return gene_id, canonical_transcript, translation_id, uniprot_id
 
 def get_transcript_variants(translation_id: str, logger: logging.Logger) -> List[Dict[str, Any]]:
     """Fetches all variants overlapping the canonical translation region."""
@@ -80,7 +95,7 @@ def get_transcript_variants(translation_id: str, logger: logging.Logger) -> List
     
     logger.info(f"API Call: Fetching transcript variants from {url}")
     session = get_session()
-    response = session.get(url, headers=headers, timeout=30)
+    response = session.get(url, headers=headers, timeout=120)
     response.raise_for_status()
     variants = response.json()
     logger.info(f"Fetched {len(variants)} overlapping sequences for {translation_id}")
@@ -98,17 +113,22 @@ def get_variant_gnomad_af(rsids: List[str], logger: logging.Logger) -> Dict[str,
     
     # Ensembl Batch API limits POST payloads
     batch_size = 200
+    total_batches = (len(rsids) + batch_size - 1) // batch_size
     for i in range(0, len(rsids), batch_size):
+        batch_num = (i // batch_size) + 1
+        print(f"Processing batch {batch_num}/{total_batches}...")
         batch = rsids[i:i+batch_size]
         payload = {"ids": batch}
         
-        response = session.post(url, headers=headers, json=payload, timeout=30)
-        
-        if response.status_code != 200:
-            logger.warning(f"Failed to fetch batch {i}-{i+batch_size}: {response.status_code}")
+        try:
+            response = session.post(url, headers=headers, json=payload, timeout=120)
+            if response.status_code != 200:
+                logger.warning(f"Failed to fetch batch {batch_num}: {response.status_code}. Skipping batch.")
+                continue
+            data = response.json()
+        except Exception as e:
+            logger.warning(f"Failed to fetch batch {batch_num} due to exception: {e}. Skipping batch.")
             continue
-            
-        data = response.json()
         
         for rsid, info in data.items():
             if not info:
@@ -129,7 +149,7 @@ def get_variant_gnomad_af(rsids: List[str], logger: logging.Logger) -> Dict[str,
     logger.info(f"Resolved AF for {len(af_map)} variants.")
     return af_map
 
-def process_variants(variants: List[Dict[str, Any]], gene_symbol: str, transcript_id: str, logger: logging.Logger, af_threshold: float) -> pd.DataFrame:
+def process_variants(variants: List[Dict[str, Any]], gene_symbol: str, transcript_id: str, logger: logging.Logger, af_threshold: float, max_variants: int = None) -> pd.DataFrame:
     """Filters for missense, extracts required columns, and queries AF."""
     extracted = []
     
@@ -160,9 +180,19 @@ def process_variants(variants: List[Dict[str, Any]], gene_symbol: str, transcrip
         
     df = pd.DataFrame(extracted)
     logger.info(f"Filtered to {len(df)} missense variants with RSIDs.")
+    print(f"Total variants: {len(df)}")
     
     if df.empty:
          return df
+
+    if len(df) > 2000:
+        warning_msg = "High variant load detected \u2014 applying chunked processing"
+        print(f"\nWARNING: {warning_msg}\n")
+        logger.warning(warning_msg)
+
+    if max_variants and len(df) > max_variants:
+        logger.info(f"Downsampling randomly from {len(df)} to {max_variants} variants.")
+        df = df.sample(n=max_variants, random_state=42).copy()
     
     # Fetch AFs
     rsids = df['rsid'].tolist()
@@ -173,6 +203,7 @@ def process_variants(variants: List[Dict[str, Any]], gene_symbol: str, transcrip
     # Filter by Rare frequency
     df_rare = df[df['gnomAD_AF'] < af_threshold].copy()
     logger.info(f"Filtered down to {len(df_rare)} rare variants (AF < {af_threshold}).")
+    print(f"Rare variants: {len(df_rare)}")
     
     return df_rare
 
@@ -188,13 +219,23 @@ def main():
     try:
         config = load_config(config_path)
         gene_symbol = config.get("gene_symbol", "CHRNA7")
+        species = config.get("species", "homo_sapiens")
         af_threshold = config.get("af_threshold", 0.001)
+        max_variants = config.get("max_variants", None)
         output_dir = os.path.join(root_dir, config.get("output_dir", "data/processed"))
         
         # execution
-        gene_id, transcript_id, translation_id = get_ensembl_gene_info(gene_symbol, logger)
+        gene_id, transcript_id, translation_id, uniprot_id = get_ensembl_gene_info(gene_symbol, species, logger)
+        
+        # Save dynamically fetched IDs to parameters.yaml
+        config['transcript_id'] = transcript_id
+        config['translation_id'] = translation_id
+        config['uniprot_id'] = uniprot_id
+        with open(config_path, 'w') as f:
+            yaml.safe_dump(config, f)
+            
         variants = get_transcript_variants(translation_id, logger)
-        df_rare = process_variants(variants, gene_symbol, transcript_id, logger, af_threshold)
+        df_rare = process_variants(variants, gene_symbol, transcript_id, logger, af_threshold, max_variants)
         
         # Save output
         os.makedirs(output_dir, exist_ok=True)

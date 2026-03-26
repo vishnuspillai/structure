@@ -1,34 +1,33 @@
 Score distribution summary:
-count    416.000000
-mean       4.399038
-std        2.987427
-min        0.000000
-25%        2.000000
-50%        4.000000
-75%        7.000000
+count    857.000000
+mean       7.994166
+std        1.802442
+min        4.000000
+25%        7.000000
+50%        8.000000
+75%        9.000000
 max       12.000000
 
 Count per priority_category:
 priority_category
-Very Low    146
-Medium      138
-Low         110
-High         22
+Medium    586
+High      184
+Low        87
 
 Top 15 variants (rsid, position, domain, score):
-        rsid  protein_position        domain_region  priority_score
-rs1901808972                64 extracellular_domain              12
-rs1398434960                77 extracellular_domain              11
-rs2050567895                66 extracellular_domain              11
-rs1307722909               261                   m2              11
- rs199802730               265                   m2              11
-rs1446173075               259                   m2              11
-rs1385784801               196 extracellular_domain              11
- rs752642520               277                   m2              11
-rs2051808999               240                   m1              10
-rs1444724222               298                   m3              10
- rs200908085               115 extracellular_domain              10
- rs368352998                48 extracellular_domain              10
- rs764126247               279                   m2              10
- rs774309737               271                   m2              10
-rs2141260799                66 extracellular_domain              10
+        rsid  protein_position      domain_region  priority_score
+ rs758887918               150         Unassigned              12
+rs1600786349               185         Unassigned              12
+ rs118192200               207                 m4              12
+rs2145774563               227         Unassigned              12
+rs2145779171               156         Unassigned              12
+rs1568941635               153         Unassigned              12
+ rs769414365               497 intracellular_loop              12
+rs1307396168               352 intracellular_loop              12
+ rs867704040               534 intracellular_loop              11
+rs2145547478               540 intracellular_loop              11
+ rs752964601               167                 m3              11
+ rs779076192               155         Unassigned              11
+ rs886042698               155         Unassigned              11
+rs1057517919               560 intracellular_loop              11
+ rs767958917               641 intracellular_loop              11

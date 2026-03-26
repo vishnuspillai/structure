@@ -2,27 +2,37 @@ af_threshold: 0.001
 consequence_filter: missense_variant
 domains:
   extracellular_domain:
-  - 23
-  - 233
+  - 114
+  - 123
   intracellular_loop:
-  - 316
-  - 466
-  m1:
-  - 234
-  - 254
-  m2:
-  - 259
-  - 279
-  m3:
-  - 292
   - 315
+  - 872
+  m1:
+  - 91
+  - 113
+  m2:
+  - 124
+  - 145
+  m3:
+  - 164
+  - 183
   m4:
-  - 467
-  - 489
-  signal_peptide:
-  - 1
-  - 22
-gene_symbol: CHRNA7
+  - 197
+  - 215
+  m5:
+  - 228
+  - 253
+  m6:
+  - 288
+  - 314
+gene_symbol: KCNQ2
 genome_build: GRCh38
+ligand_mode: auto
 log_dir: logs
+max_variants: 1000
 output_dir: data/processed
+species: homo_sapiens
+structure_id: 7CR0
+transcript_id: ENST00000359125
+translation_id: ENSP00000352035
+uniprot_id: O43526

@@ -25,27 +25,45 @@ def setup_logging(log_file: str) -> logging.Logger:
     logger.addHandler(ch)
     return logger
 
+def get_session():
+    session = requests.Session()
+    from urllib3.util.retry import Retry
+    from requests.adapters import HTTPAdapter
+    retries = Retry(total=5, backoff_factor=2, status_forcelist=[ 429, 500, 502, 503, 504 ])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
+    return session
+
 def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, output_path: str) -> pd.DataFrame:
     """Phase A: Fetch GRCh38 coordinates via /variation API, update chrom, pos and audit AF."""
     url = "https://rest.ensembl.org/variation/homo_sapiens?pops=1"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
     
     rsids = df['rsid'].tolist()
-    batch_size = 100
+    batch_size = 200
     coord_map = {}
     af_map = {}
     alt_map = dict(zip(df['rsid'], df['alt']))
     
     logger.info(f"Phase A: Batch querying {len(rsids)} RSIDs for coordinate correction and AF repair.")
+    session = get_session()
+    total_batches = (len(rsids) + batch_size - 1) // batch_size
+    
     for i in range(0, len(rsids), batch_size):
+        batch_num = (i // batch_size) + 1
+        print(f"Phase A: Processing batch {batch_num}/{total_batches}...")
         batch = rsids[i:i+batch_size]
         payload = {"ids": batch}
-        res = requests.post(url, headers=headers, json=payload)
-        if res.status_code != 200:
-            logger.warning(f"Failed to fetch batch {i}-{i+batch_size}: {res.status_code}")
+        try:
+            res = session.post(url, headers=headers, json=payload, timeout=60)
+            if res.status_code != 200:
+                logger.warning(f"Failed to fetch batch {batch_num}: {res.status_code}. Skipping.")
+                continue
+            res.raise_for_status()
+            data = res.json()
+        except Exception as e:
+            logger.warning(f"Failed to fetch batch {batch_num} due to exception: {e}. Skipping.")
             continue
             
-        data = res.json()
         for rsid, info in data.items():
             if not info:
                 continue
@@ -117,46 +135,55 @@ def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, outp
 def fetch_uniprot_features(uniprot_id: str, logger: logging.Logger) -> Dict[str, Any]:
     url = f"https://rest.uniprot.org/uniprotkb/{uniprot_id}.json"
     logger.info(f"Phase B: Fetching canonical UniProt record for {uniprot_id}")
-    res = requests.get(url)
-    res.raise_for_status()
-    data = res.json()
-    
+    session = get_session()
     domains = {}
-    transmem_count = 1
-    
-    for f in data.get('features', []):
-        t = f['type']
-        start = f['location']['start']['value']
-        end = f['location']['end']['value']
-        desc = f.get('description', '').lower()
+    try:
+        res = session.get(url, timeout=60)
+        res.raise_for_status()
+        data = res.json()
         
-        if t == 'Signal':
-            domains['signal_peptide'] = [start, end]
-        elif t == 'Topological domain':
-            if 'extracellular' in desc:
-                # Capture the largest ECD, usually before M1
-                if 'extracellular_domain' not in domains:
-                    domains['extracellular_domain'] = [start, end]
-            elif 'cytoplasmic' in desc:
-                domains['intracellular_loop'] = [start, end]
-        elif t == 'Transmembrane':
-            domains[f'm{transmem_count}'] = [start, end]
-            transmem_count += 1
+        transmem_count = 1
+        
+        for f in data.get('features', []):
+            t = f['type']
+            start = f['location']['start']['value']
+            end = f['location']['end']['value']
+            desc = f.get('description', '').lower()
             
-    logger.info(f"Phase B: Parsed domain boundaries: {domains}")
+            if t == 'Signal':
+                domains['signal_peptide'] = [start, end]
+            elif t == 'Topological domain':
+                if 'extracellular' in desc:
+                    # Capture the largest ECD, usually before M1
+                    if 'extracellular_domain' not in domains:
+                        domains['extracellular_domain'] = [start, end]
+                elif 'cytoplasmic' in desc:
+                    domains['intracellular_loop'] = [start, end]
+            elif t == 'Transmembrane':
+                domains[f'm{transmem_count}'] = [start, end]
+                transmem_count += 1
+                
+        logger.info(f"Phase B: Parsed domain boundaries: {domains}")
+    except Exception as e:
+        logger.warning(f"Phase B: Failed to parse UniProt domains for {uniprot_id} ({e}). Defaulting to unassigned.")
+        
     return domains
 
-def phase_b_structural_domains(df: pd.DataFrame, logger: logging.Logger, config_path: str) -> pd.DataFrame:
+def phase_b_structural_domains(df: pd.DataFrame, logger: logging.Logger, config_path: str, config: dict) -> pd.DataFrame:
     """Phase B: Parse UniProt limits, alter params, assign domains."""
-    uniprot_id = "P36544" # Canonical CHRNA7
+    uniprot_id = config.get('uniprot_id')
+    if not uniprot_id:
+        raise ValueError("Missing uniprot_id in config")
+        
     domains = fetch_uniprot_features(uniprot_id, logger)
     
     with open(config_path, 'r') as file:
-        config = yaml.safe_load(file)
+        file_config = yaml.safe_load(file)
+
         
-    config['domains'] = domains
+    file_config['domains'] = domains
     with open(config_path, 'w') as file:
-        yaml.safe_dump(config, file)
+        yaml.safe_dump(file_config, file)
     logger.info(f"Phase B: Updated {config_path} with Domain bounds.")
     
     def assign_domain(pos):
@@ -176,31 +203,40 @@ def phase_b_structural_domains(df: pd.DataFrame, logger: logging.Logger, config_
     
     return df
 
-def phase_c_functional_scores(df: pd.DataFrame, logger: logging.Logger, output_path: str) -> pd.DataFrame:
+def phase_c_functional_scores(df: pd.DataFrame, logger: logging.Logger, output_path: str, config: dict) -> pd.DataFrame:
     """Phase C: VEP querying for CADD and Conservation."""
     url = "https://rest.ensembl.org/vep/human/id"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
     params = {"CADD": 1}
     
     rsids = df['rsid'].tolist()
-    batch_size = 100
+    batch_size = 200
     vep_map = {}
     
     alt_map = dict(zip(df['rsid'], df['alt']))
     
     logger.info(f"Phase C: Batch querying {len(rsids)} RSIDs to VEP for CADD.")
+    session = get_session()
+    total_batches = (len(rsids) + batch_size - 1) // batch_size
+    
     for i in range(0, len(rsids), batch_size):
+        batch_num = (i // batch_size) + 1
+        print(f"Phase C: Processing batch {batch_num}/{total_batches}...")
         batch = rsids[i:i+batch_size]
         payload = {"ids": batch}
         # post query string via url payload? No, VEP API accepts URL params in the URL itself
         req_url = f"{url}?CADD=1"
-        res = requests.post(req_url, headers=headers, json=payload)
-        
-        if res.status_code != 200:
-            logger.warning(f"Failed to fetch batch {i}-{i+batch_size}: {res.status_code}")
+        try:
+            res = session.post(req_url, headers=headers, json=payload, timeout=120)
+            if res.status_code != 200:
+                logger.warning(f"Failed to fetch batch {batch_num}: {res.status_code}. Skipping.")
+                continue
+            res.raise_for_status()
+            data = res.json()
+        except Exception as e:
+            logger.warning(f"Failed to fetch batch {batch_num} due to exception: {e}. Skipping.")
             continue
             
-        data = res.json()
         for item in data:
             rid = item.get('input') or item.get('id')
             alt_allele = alt_map.get(rid)
@@ -212,8 +248,9 @@ def phase_c_functional_scores(df: pd.DataFrame, logger: logging.Logger, output_p
             polyphen_pred = None
             
             has_match = False
+            transcript_id = config.get('transcript_id')
             for tc in item.get('transcript_consequences', []):
-                if tc.get('transcript_id') == 'ENST00000306901' and tc.get('variant_allele') == alt_allele:
+                if tc.get('transcript_id') == transcript_id and tc.get('variant_allele') == alt_allele:
                     if 'sift_score' in tc:
                         sift = tc.get('sift_score')
                         sift_pred = tc.get('sift_prediction')
@@ -290,19 +327,24 @@ def main():
     logger.info("Initializing Module 2: Functional Annotation Layer")
     
     try:
-        input_csv = os.path.join(root_dir, "data/processed/chrna7_rare_missense_variants.csv")
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            
+        gene_symbol = config.get('gene_symbol', 'CHRNA7').lower()
+        
+        input_csv = os.path.join(root_dir, f"data/processed/{gene_symbol}_rare_missense_variants.csv")
         df = pd.read_csv(input_csv)
         
         # Phase A
-        corrected_csv_path = os.path.join(root_dir, "data/processed/chrna7_missense_master_corrected.csv")
+        corrected_csv_path = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_master_corrected.csv")
         df_corrected = phase_a_coordinate_correction(df, logger, corrected_csv_path)
         
         # Phase B
-        df_domain = phase_b_structural_domains(df_corrected, logger, config_path)
+        df_domain = phase_b_structural_domains(df_corrected, logger, config_path, config)
         
         # Phase C
-        annotated_csv_path = os.path.join(root_dir, "data/processed/chrna7_missense_annotated.csv")
-        df_final = phase_c_functional_scores(df_domain, logger, annotated_csv_path)
+        annotated_csv_path = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_annotated.csv")
+        df_final = phase_c_functional_scores(df_domain, logger, annotated_csv_path, config)
         
         logger.info("Module 2 Execution Complete.")
         

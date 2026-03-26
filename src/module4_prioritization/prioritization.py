@@ -1,8 +1,16 @@
 import pandas as pd
 import numpy as np
 import os
+import yaml
 
-df = pd.read_csv('data/processed/chrna7_missense_spatial_annotated.csv')
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+config_path = os.path.join(root_dir, "config", "parameters.yaml")
+with open(config_path, 'r') as f:
+    config = yaml.safe_load(f)
+gene_symbol = config.get("gene_symbol", "CHRNA7").lower()
+
+input_csv = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_spatial_annotated.csv")
+df = pd.read_csv(input_csv)
 
 def compute_score(row):
     score = 0
@@ -65,10 +73,10 @@ def get_category(s):
 df['priority_category'] = df['priority_score'].apply(get_category)
 
 df = df.sort_values(by='priority_score', ascending=False)
-output_path = 'data/processed/chrna7_ranked_variants.csv'
+output_path = os.path.join(root_dir, f"data/processed/{gene_symbol}_ranked_variants.csv")
 df.to_csv(output_path, index=False)
 
-output_txt = 'mod4_output.txt'
+output_txt = os.path.join(root_dir, 'mod4_output.txt')
 with open(output_txt, 'w', encoding='utf-8') as f:
     f.write("Score distribution summary:\n")
     f.write(df['priority_score'].describe().to_string() + "\n")

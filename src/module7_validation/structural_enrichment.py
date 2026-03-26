@@ -1,7 +1,16 @@
 import pandas as pd
 from scipy.stats import fisher_exact
+import os
+import yaml
 
-df = pd.read_csv('data/processed/chrna7_ranked_variants.csv')
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+config_path = os.path.join(root_dir, "config", "parameters.yaml")
+with open(config_path, 'r') as f:
+    config = yaml.safe_load(f)
+gene_symbol = config.get("gene_symbol", "CHRNA7").lower()
+
+input_csv = os.path.join(root_dir, f'data/processed/{gene_symbol}_ranked_variants.csv')
+df = pd.read_csv(input_csv)
 
 features = {
     'is_binding_site': 'is_binding_site',
