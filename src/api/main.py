@@ -14,7 +14,8 @@ app = FastAPI(title="Structural Prioritization API")
 # Setup CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -90,7 +91,10 @@ def get_data(filename: str):
     
     if filename.endswith(".csv"):
         import pandas as pd
+        import numpy as np
         df = pd.read_csv(file_path)
+        # Handle NaN/Inf for JSON compliance
+        df = df.replace({np.nan: None, np.inf: None, -np.inf: None})
         return df.to_dict(orient="records")
     elif filename.endswith(".json"):
         with open(file_path, 'r') as f:

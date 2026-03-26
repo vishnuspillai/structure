@@ -2,37 +2,91 @@ af_threshold: 0.001
 consequence_filter: missense_variant
 domains:
   extracellular_domain:
-  - 114
-  - 123
+  - 147
+  - 152
   intracellular_loop:
-  - 315
-  - 872
+  - 1789
+  - 2009
   m1:
-  - 91
-  - 113
+  - 129
+  - 146
+  m10:
+  - 855
+  - 874
+  m11:
+  - 892
+  - 912
+  m12:
+  - 966
+  - 992
+  m13:
+  - 1219
+  - 1237
+  m14:
+  - 1251
+  - 1276
+  m15:
+  - 1279
+  - 1304
+  m16:
+  - 1314
+  - 1332
+  m17:
+  - 1346
+  - 1369
+  m18:
+  - 1458
+  - 1483
+  m19:
+  - 1542
+  - 1560
   m2:
-  - 124
-  - 145
+  - 153
+  - 177
+  m20:
+  - 1572
+  - 1593
+  m21:
+  - 1602
+  - 1623
+  m22:
+  - 1637
+  - 1655
+  m23:
+  - 1666
+  - 1688
+  m24:
+  - 1760
+  - 1788
   m3:
-  - 164
-  - 183
+  - 189
+  - 205
   m4:
-  - 197
-  - 215
+  - 214
+  - 235
   m5:
-  - 228
-  - 253
+  - 246
+  - 269
   m6:
-  - 288
-  - 314
-gene_symbol: KCNQ2
+  - 398
+  - 423
+  m7:
+  - 769
+  - 787
+  m8:
+  - 798
+  - 820
+  m9:
+  - 831
+  - 849
+gene_symbol: SCN1A
 genome_build: GRCh38
 ligand_mode: auto
 log_dir: logs
 max_variants: 1000
 output_dir: data/processed
 species: homo_sapiens
-structure_id: 7CR0
-transcript_id: ENST00000359125
-translation_id: ENSP00000352035
-uniprot_id: O43526
+structure_id: 7DTD
+transcript_id: ENST00000674923
+translation_id: ENSP00000501589
+uniprot_id: P35498

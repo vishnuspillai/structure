@@ -4,6 +4,7 @@ from scipy.stats.contingency import odds_ratio
 import os
 import yaml
 import numpy as np
+import json
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 config_path = os.path.join(root_dir, "config", "parameters.yaml")
@@ -19,14 +20,14 @@ features = {
     'is_interface': 'is_interface'
 }
 
-output = ["Feature\tOR\tLower_CI\tUpper_CI\tp-value"]
+output = []
 
 # Check if binding site analysis was performed
 if 'is_binding_site' in df.columns:
     if 'unknown' in df['is_binding_site'].unique():
         msg = "Binding-site enrichment not computed (no ligand available)"
         print(msg)
-        output.append(msg)
+        output.append({"feature": "is_binding_site", "status": "skipped", "reason": msg})
     else:
         features['is_binding_site'] = 'is_binding_site'
 
@@ -44,7 +45,7 @@ for display_name, col_name in features.items():
     
     if A < 3 or B < 3 or C < 3 or D < 3:
         print(f"Skipping {display_name}: Insufficient data for enrichment analysis (cell count < 3).")
-        output.append(f"{display_name}\tNA\tNA\tNA\tNA")
+        output.append({"feature": display_name, "status": "skipped", "reason": "Insufficient data (cell count < 3)"})
         continue
 
     table = [[A, B],
@@ -58,15 +59,24 @@ for display_name, col_name in features.items():
         ci = res.confidence_interval(confidence_level=0.95)
         if np.isinf(odds) or np.isnan(odds) or np.isinf(ci.low) or np.isinf(ci.high):
             print(f"Skipping {display_name}: OR is infinity or NaN.")
-            output.append(f"{display_name}\tNA\tNA\tNA\tNA")
+            output.append({"feature": display_name, "status": "skipped", "reason": "OR is infinity or NaN"})
             continue
-        output.append(f"{display_name}\t{odds:.4f}\t{ci.low:.4f}\t{ci.high:.4f}\t{p_value:.4e}")
+        output.append({
+            "feature": display_name,
+            "status": "success",
+            "odds_ratio": float(odds),
+            "lower_ci": float(ci.low),
+            "upper_ci": float(ci.high),
+            "p_value": float(p_value)
+        })
     except Exception as e:
         print(f"Skipping {display_name}: Stats error - {e}")
-        output.append(f"{display_name}\tNA\tNA\tNA\tNA")
+        output.append({"feature": display_name, "status": "error", "reason": str(e)})
 
-out_text = "\n".join(output)
-print(out_text)
-output_path = os.path.join(root_dir, f'data/processed/{gene_symbol}_structural_ci.txt')
+# Final JSON output
+output_path = os.path.join(root_dir, f'data/processed/{gene_symbol}_enrichment_results.json')
 with open(output_path, 'w', encoding='utf-8') as f:
-    f.write(out_text)
+    json.dump(output, f, indent=4)
+
+# Print for log
+print(json.dumps(output, indent=4))

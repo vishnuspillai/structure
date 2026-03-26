@@ -164,6 +164,7 @@ df['is_interface'] = df['protein_position'].apply(lambda x: check_is_interface(x
 df['is_tm_core'] = df['is_transmembrane'].fillna(False).astype(bool) & ~df['spatially_unresolved']
 
 # Enforce strict defaults for structurally unmapped variants to gracefully pass analysis safely
+df['is_binding_site'] = df['is_binding_site'].astype(object)
 df.loc[df['spatially_unresolved'], 'is_binding_site'] = 'unknown'
 df.loc[df['spatially_unresolved'], 'is_interface'] = False
 df.loc[df['spatially_unresolved'], 'is_tm_core'] = False
@@ -175,7 +176,7 @@ if 'is_transmembrane' in df.columns:
 if ligand_mode == "force_off" or len(ligands) == 0:
     print("Warning: No ligand detected (or forced off) — binding site annotation skipped")
 
-output_file = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_spatial_annotated.csv")
+output_file = os.path.join(root_dir, f"data/processed/{gene_symbol}_structural_annotated.csv")
 df.to_csv(output_file, index=False)
 print("Finished calculating spatial flags.")
 
