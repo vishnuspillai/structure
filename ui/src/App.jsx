@@ -159,7 +159,7 @@ export default function App() {
             <Zap size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight uppercase tracking-tighter">STRUCT-X</h1>
+            <h1 className="font-bold text-lg leading-tight uppercase tracking-tighter">RAREMISS</h1>
             <p className="text-[10px] text-secondary font-bold opacity-60">PIPELINE</p>
           </div>
         </div>

@@ -13,7 +13,7 @@ def run_pipeline():
         ("Module 7: Validate Feature Enrichment (CI)", "src/module7_validation/structural_enrichment_ci.py")
     ]
 
-    print("=== Starting STRUCT-X Pipeline Execution =========================================")
+    print("=== Starting RAREMISS Pipeline Execution =========================================")
     
     for step_num, (description, script_path) in enumerate(steps, 1):
         print(f"\n=> [{step_num}/{len(steps)}] Running {description}...")

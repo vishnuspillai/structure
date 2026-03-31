@@ -176,8 +176,9 @@ if 'is_transmembrane' in df.columns:
 if ligand_mode == "force_off" or len(ligands) == 0:
     print("Warning: No ligand detected (or forced off) — binding site annotation skipped")
 
-output_file = os.path.join(root_dir, f"data/processed/{gene_symbol}_structural_annotated.csv")
+output_file = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_spatial_annotated.csv")
 df.to_csv(output_file, index=False)
+print(f"Saved spatial annotations to: {output_file}")
 print("Finished calculating spatial flags.")
 
 print("\n=====================================================")

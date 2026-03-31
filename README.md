@@ -1,14 +1,14 @@
-# STRUCT-X: Structure-Aware Prioritization of Rare Missense Variants
+# RAREMISS: Structure-Aware Prioritization of Rare Missense Variants
 
 ##  Overview
 
-STRUCT-X is a generalized computational framework for prioritizing rare missense variants by integrating:
+RAREMISS (Rare Missense Variant Prioritization Framework) is a generalized computational framework for prioritizing rare missense variants by integrating:
 
 - Population allele frequency (gnomAD)
 - Functional prediction scores (CADD, SIFT, PolyPhen)
 - Three-dimensional structural context (PDB)
 
-Unlike conventional pipelines that rely solely on sequence-based predictions, STRUCT-X incorporates protein structure to identify variants enriched in functionally critical regions.
+Unlike conventional pipelines that rely solely on sequence-based predictions, RAREMISS incorporates protein structure to identify variants enriched in functionally critical regions.
 
 ---
 
@@ -39,7 +39,7 @@ We demonstrate that:
 
 ##  Validation Summary
 
-STRUCT-X was validated across structurally distinct proteins:
+RAREMISS was validated across structurally distinct proteins:
 
 | Protein | Result |
 |--------|--------|
@@ -55,7 +55,7 @@ This demonstrates that structural enrichment is **protein-dependent**, not algor
 
 ```bash
 git clone https://github.com/vishnuspillai/structure.git
-cd STRUCT-X
+cd RAREMISS
 pip install -r requirements.txt
 ```
 

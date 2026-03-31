@@ -10,6 +10,13 @@ with open(config_path, 'r') as f:
 gene_symbol = config.get("gene_symbol", "CHRNA7").lower()
 
 input_csv = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_spatial_annotated.csv")
+
+if not os.path.exists(input_csv):
+    raise FileNotFoundError(
+        f"Expected input file not found: {input_csv}. "
+        "Check Module 3 output."
+    )
+
 df = pd.read_csv(input_csv)
 
 def compute_score(row):

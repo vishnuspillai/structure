@@ -1,5 +1,5 @@
 """
-Terminal-based validation runner for generalized STRUCT-X pipeline.
+Terminal-based validation runner for generalized RAREMISS pipeline.
 Runs specified test cases sequentially, capturing logs and validating outputs.
 """
 import subprocess

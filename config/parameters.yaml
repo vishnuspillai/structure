@@ -2,91 +2,55 @@ af_threshold: 0.001
 consequence_filter: missense_variant
 domains:
   extracellular_domain:
-  - 147
-  - 152
+  - 99
+  - 122
   intracellular_loop:
-  - 1789
-  - 2009
+  - 1152
+  - 1480
   m1:
-  - 129
-  - 146
+  - 78
+  - 98
   m10:
-  - 855
-  - 874
+  - 1014
+  - 1034
   m11:
-  - 892
-  - 912
+  - 1096
+  - 1116
   m12:
-  - 966
-  - 992
-  m13:
-  - 1219
-  - 1237
-  m14:
-  - 1251
-  - 1276
-  m15:
-  - 1279
-  - 1304
-  m16:
-  - 1314
-  - 1332
-  m17:
-  - 1346
-  - 1369
-  m18:
-  - 1458
-  - 1483
-  m19:
-  - 1542
-  - 1560
+  - 1131
+  - 1151
   m2:
-  - 153
-  - 177
-  m20:
-  - 1572
-  - 1593
-  m21:
-  - 1602
-  - 1623
-  m22:
-  - 1637
-  - 1655
-  m23:
-  - 1666
-  - 1688
-  m24:
-  - 1760
-  - 1788
+  - 123
+  - 146
   m3:
-  - 189
-  - 205
+  - 196
+  - 216
   m4:
-  - 214
-  - 235
+  - 223
+  - 243
   m5:
-  - 246
-  - 269
+  - 299
+  - 319
   m6:
-  - 398
-  - 423
+  - 340
+  - 358
   m7:
-  - 769
-  - 787
+  - 859
+  - 879
   m8:
-  - 798
-  - 820
+  - 919
+  - 939
   m9:
-  - 831
-  - 849
-gene_symbol: SCN1A
+  - 991
+  - 1011
+gene_symbol: CFTR
 genome_build: GRCh38
 ligand_mode: auto
 log_dir: logs
 max_variants: 1000
 output_dir: data/processed
 species: homo_sapiens
-structure_id: 7DTD
-transcript_id: ENST00000674923
-translation_id: ENSP00000501589
-uniprot_id: P35498
+structure_id: 6MSM
+transcript_id: ENST00000003084
+translation_id: ENSP00000003084
+uniprot_id: P13569
