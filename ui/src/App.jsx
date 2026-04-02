@@ -83,7 +83,7 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
       confidenceLevel = "High";
       confidenceColor = "text-success";
   } else if ((cov >= 70 && cov <= 90) || (cov > 90 && !isEnriched) || (cov >= 70 && isEnriched)) {
-      confidenceLevel = "Medium";
+      confidenceLevel = "MEDIUM — due to incomplete structural coverage and lack of statistically significant enrichment";
       confidenceColor = "text-warning";
   }
 
@@ -97,7 +97,7 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
       interpMsg = "Rare variants are significantly enriched in structurally critical regions, suggesting potential functional impact.";
   } else {
       if (skippedFeatures.length > 0) {
-          interpMsg = "No structural clustering observed because some enrichment tests could not be performed or variant distribution across structural regions is low.";
+          interpMsg = "Variants are distributed across structural regions but do not show statistically significant enrichment in any specific functional site.";
       } else {
           interpMsg = "No structural clustering observed. Variants appear distributed without functional enrichment.";
       }
@@ -143,13 +143,11 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
   };
 
   // 4. Actionable Insight
-  let insightMsg = "Consider alternative structures for better mapping or evaluating sequence-based predictions.";
+  let insightMsg = "Prioritize variants using sequence-based scores (e.g., CADD) and consider experimental validation for top-ranked variants, especially those located in conserved or domain-specific regions.";
   if (isEnriched && enrichedFeatures.includes('is_binding_site')) {
       insightMsg = "Prioritize binding-site variants for functional assays or ligand-docking analysis.";
   } else if (isEnriched) {
       insightMsg = "Investigate top-scoring structural variants experimentally for stability impacts.";
-  } else if (cov >= 80 && !isEnriched) {
-      insightMsg = "Rely on sequence-based conservation scores (e.g. CADD) rather than spatial clustering for prioritization.";
   }
 
   // 5. Reliability Warnings
@@ -165,7 +163,8 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
           <p className="text-sm text-white/90 leading-relaxed font-medium">{interpMsg}</p>
           
           <div className="mt-4 pt-4 border-t border-white/5">
-              <h3 className="text-xs text-secondary font-bold uppercase tracking-widest mb-3">Evidence Summary</h3>
+              <h3 className="text-xs text-secondary font-bold uppercase tracking-widest mb-1">Evidence Summary</h3>
+              <p className="text-[11px] text-white/50 italic mb-4">Observed distribution does not significantly exceed background expectation.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
