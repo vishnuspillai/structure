@@ -92,11 +92,15 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
   if (cov === 0) {
       interpMsg = "Variants could not be mapped to the selected structure. Structural interpretation is not possible.";
   } else if (cov < 80) {
-      interpMsg = "Structural mapping is incomplete; some functional regions could not be evaluated. Results should be interpreted with caution.";
+      interpMsg = `Interpretation is limited due to incomplete structural coverage (${cov.toFixed(1)}%).`;
   } else if (isEnriched) {
       interpMsg = "Rare variants are significantly enriched in structurally critical regions, suggesting potential functional impact.";
   } else {
-      interpMsg = "No structural clustering observed. Variants appear distributed without functional enrichment.";
+      if (skippedFeatures.length > 0) {
+          interpMsg = "No structural clustering observed because some enrichment tests could not be performed or variant distribution across structural regions is low.";
+      } else {
+          interpMsg = "No structural clustering observed. Variants appear distributed without functional enrichment.";
+      }
   }
 
   // 3. Biological Context
@@ -106,6 +110,37 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
   } else if (enrichedFeatures.some(f => f.includes('pore') || f.includes('core'))) {
       bioContext = "Variants localize to core structural regions, possibly impacting stability or function.";
   }
+
+  // Calculate distributions
+  const mappedCount = mappingReport.mapped_variants || 1;
+  const bindCount = results.filter(r => String(r.is_binding_site).toLowerCase() === 'true').length;
+  const interfaceCount = results.filter(r => String(r.is_interface).toLowerCase() === 'true').length;
+  const coreCount = results.filter(r => String(r.is_tm_core).toLowerCase() === 'true' || String(r.is_pore_region).toLowerCase() === 'true').length;
+
+  const bindPct = Math.round((bindCount / mappedCount) * 100) || 0;
+  const interfacePct = Math.round((interfaceCount / mappedCount) * 100) || 0;
+  const corePct = Math.round((coreCount / mappedCount) * 100) || 0;
+
+  const renderBar = (pct) => {
+      const blocks = Math.min(10, Math.max(0, Math.round(pct / 10)));
+      return "█".repeat(blocks) + "░".repeat(10 - blocks);
+  }
+
+  const renderEnrichmentStats = () => {
+      if (!enrichmentResults || enrichmentResults.length === 0 || enrichmentResults.every(r => r.status !== 'computed')) {
+          return <p className="text-secondary opacity-50 italic text-xs my-2">Enrichment not computed due to insufficient data.</p>;
+      }
+      return (
+          <div className="flex flex-col gap-1 my-2">
+             {enrichmentResults.filter(r => r.status === 'computed').map((r, i) => (
+                 <div key={i} className="flex justify-between text-[11px] bg-black/20 px-2 py-1 rounded border border-white/5">
+                     <span className="text-white/70">{r.feature.replace('is_', '').replace('_', ' ')}</span>
+                     <span className="text-accent font-mono font-bold">OR: {r.odds_ratio?.toFixed(2)} | p: {r.p_value?.toExponential(2)}</span>
+                 </div>
+             ))}
+          </div>
+      )
+  };
 
   // 4. Actionable Insight
   let insightMsg = "Consider alternative structures for better mapping or evaluating sequence-based predictions.";
@@ -128,6 +163,44 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
        {/* Interpretation & Confidence */}
        <Card title="Scientific Interpretation" className="bg-accent/5 border-accent/20 col-span-1 lg:col-span-2">
           <p className="text-sm text-white/90 leading-relaxed font-medium">{interpMsg}</p>
+          
+          <div className="mt-4 pt-4 border-t border-white/5">
+              <h3 className="text-xs text-secondary font-bold uppercase tracking-widest mb-3">Evidence Summary</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/60">Mapping coverage:</span>
+                          <span className="font-mono text-white/90">{cov.toFixed(1)}%</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/60">Binding site:</span>
+                          <span className="font-mono text-accent">{renderBar(bindPct)} ({bindPct}%)</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/60">Interface:</span>
+                          <span className="font-mono text-accent">{renderBar(interfacePct)} ({interfacePct}%)</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/60">Core regions:</span>
+                          <span className="font-mono text-accent">{renderBar(corePct)} ({corePct}%)</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/60">Enrichment computed:</span>
+                          <span className="font-mono text-white/90">{enrichmentResults?.some(r => r.status === 'computed') ? 'Yes' : 'No'}</span>
+                      </div>
+                  </div>
+                  
+                  <div className="flex flex-col border-l border-white/5 pl-6">
+                      <span className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Enrichment Stats</span>
+                      {renderEnrichmentStats()}
+                      <span className="text-[9px] text-secondary/60 italic mt-auto pt-2">
+                          *Strong signals typically show enrichment OR &gt; 1.0 and p &lt; 0.05
+                      </span>
+                  </div>
+              </div>
+          </div>
+
           <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2">
              <div className="flex items-center justify-between">
                  <span className="text-xs text-secondary font-bold uppercase tracking-widest">Biological Context</span>
