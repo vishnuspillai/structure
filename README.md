@@ -18,7 +18,7 @@ We demonstrate that:
 
 > Structural context enables protein-specific prioritization of rare variants, revealing that enrichment in functional regions is not universal but depends on protein architecture.
 
----
+
 
 ##  Features
 

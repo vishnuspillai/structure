@@ -3,7 +3,7 @@ import axios from 'axios';
 import { 
   Activity, Settings, Terminal, Database, 
   ChevronRight, Play, CheckCircle2, AlertCircle, Loader2,
-  Table as TableIcon, Box as CubeIcon, Info, Zap
+  Table as TableIcon, Box as CubeIcon, Info, Zap, ChevronDown
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -56,6 +56,89 @@ const MolstarIframe = ({ pdbId = '7KOX' }) => (
     </div>
 );
 
+const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
+  if (!mappingReport) return null;
+  
+  const cov = mappingReport.mapping_coverage_percentage || 0;
+  let mapMsg = "";
+  let mapStatus = "";
+  if (cov === 0) {
+     mapMsg = "Variants could not be mapped to structure";
+     mapStatus = "❌ No signal";
+  } else if (cov < 80) {
+     mapMsg = "Structural coverage is partial; interpretations may be limited";
+     mapStatus = "⚠ Mapping limitation";
+  }
+
+  let enriched = false;
+  let enrichMsg = "No structural clustering observed for this protein";
+  let enrichStatus = "❌ No signal";
+  
+  const renderEnrichment = () => {
+    if (!enrichmentResults || enrichmentResults.length === 0) {
+      return <p className="text-secondary opacity-50 italic text-xs">No enrichment data available.</p>;
+    }
+    return enrichmentResults.map((r, i) => {
+      let t = "";
+      if (r.status === 'computed') {
+         if (r.p_value < 0.05 && r.odds_ratio > 1) {
+             enriched = true;
+         }
+         t = `OR: ${r.odds_ratio.toFixed(2)}, p: ${r.p_value.toExponential(2)}`;
+      } else {
+         t = "Not computed";
+      }
+      return <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-white/5 last:border-0"><span className="font-medium text-white/80">{r.feature}</span><span className="text-white/60 font-mono">{t}</span></div>
+    })
+  }
+
+  const enrichmentContent = renderEnrichment();
+
+  if (enriched) {
+     enrichMsg = "Variants are significantly enriched in functional regions";
+     enrichStatus = "✅ Strong signal";
+  } else if (enrichmentResults && enrichmentResults.some(r => r.status === 'skipped' || r.status === 'error')) {
+     if (enrichMsg === "No structural clustering observed for this protein") {
+         enrichMsg = "Some functional regions could not be computed (missing data)";
+         enrichStatus = "⚠ Partial signal";
+     }
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-4 mb-6">
+       <Card title="Structural Insights" className="bg-accent/5 border-accent/20">
+          <p className="text-sm text-white/90 leading-tight">{cov < 80 ? mapMsg : enrichMsg}</p>
+          <div className="mt-auto pt-4 flex items-center justify-between">
+              <p className="text-xs font-black uppercase tracking-widest text-accent">{cov < 80 ? mapStatus : enrichStatus}</p>
+          </div>
+       </Card>
+       <Card title="Key Metrics">
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between text-xs py-1 border-b border-white/5"><span className="text-secondary">Total Analysed</span> <span className="font-bold text-white/90">{mappingReport.total_variants}</span></div>
+            <div className="flex justify-between text-xs py-1 border-b border-white/5"><span className="text-secondary">Mapped to Structure</span> <span className="font-bold text-white/90">{mappingReport.mapped_variants} <span className="text-secondary/60">({cov.toFixed(1)}%)</span></span></div>
+            <div className="flex justify-between text-xs py-1"><span className="text-secondary">High Priority</span> <span className="font-bold text-danger">{results.filter(r => r.priority_category === 'High').length}</span></div>
+          </div>
+       </Card>
+       <Card title="Enrichment Signals">
+          <div className="flex flex-col">
+            {enrichmentContent}
+          </div>
+       </Card>
+       <Card title="Top 3 Variants">
+          <div className="flex flex-col gap-2">
+            {results.length === 0 && <p className="text-secondary opacity-50 italic text-xs">No variants prioritized.</p>}
+            {results.slice(0, 3).map((r,i) => (
+                <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-white/5 last:border-0">
+                    <span className="font-medium text-white/90">{r.rsid} <span className="text-secondary text-[10px]">({r.amino_acid_change})</span></span>
+                    <span className="text-accent font-mono font-bold">{r.priority_score.toFixed(1)}</span>
+                </div>
+            ))}
+          </div>
+       </Card>
+    </div>
+  )
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('pipeline');
   const [logs, setLogs] = useState([]);
@@ -63,7 +146,10 @@ export default function App() {
   const [running, setRunning] = useState(false);
   const [config, setConfig] = useState({ af_threshold: 0.001, gene_symbol: 'CHRNA7', consequence_filter: 'missense_variant', structure_id: '7kox', species: 'homo_sapiens' });
   const [results, setResults] = useState([]);
+  const [mappingReport, setMappingReport] = useState(null);
+  const [enrichmentResults, setEnrichmentResults] = useState(null);
   const [currentStep, setCurrentStep] = useState(null);
+  const [consoleOpen, setConsoleOpen] = useState(false);
   
   const logEndRef = useRef(null);
   const ws = useRef(null);
@@ -102,6 +188,21 @@ export default function App() {
     try {
       const res = await axios.get(`http://localhost:8000/data/${config.gene_symbol.toLowerCase()}_ranked_variants.csv`);
       setResults(res.data);
+      
+      try {
+        const mappingRes = await axios.get(`http://localhost:8000/data/${config.gene_symbol.toLowerCase()}_mapping_report.json`);
+        setMappingReport(mappingRes.data);
+      } catch (e) {
+        console.warn("Failed to load mapping report", e);
+      }
+
+      try {
+        const enrichRes = await axios.get(`http://localhost:8000/data/${config.gene_symbol.toLowerCase()}_enrichment_results.json`);
+        setEnrichmentResults(enrichRes.data);
+      } catch (e) {
+        console.warn("Failed to load enrichment results", e);
+      }
+      
     } catch (e) {
       console.error("Failed to load results", e);
     }
@@ -232,19 +333,35 @@ export default function App() {
                 </div>
 
                 <div className="col-span-8 flex flex-col gap-6">
-                  <Card title="Live Console" icon={Terminal} className="h-[400px] flex flex-col p-4 bg-black/40">
-                    <div className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-2 custom-scrollbar">
-                      {logs.length === 0 && <p className="text-secondary opacity-30 italic">Console output will appear here...</p>}
-                      {logs.map((log, i) => (
-                        <div key={i} className="flex gap-4 border-l border-white/5 pl-4 mb-1">
-                          <span className="text-secondary/40 shrink-0 select-none">[{i.toString().padStart(3, '0')}]</span>
-                          <span className={cn(
-                            log.includes('ERROR') ? "text-danger" : log.includes('SUCCESS') ? "text-success" : "text-white/80"
-                          )}>{log}</span>
-                        </div>
-                      ))}
-                      <div ref={logEndRef} />
+                  {mappingReport && !running && <SummaryPanel results={results} mappingReport={mappingReport} enrichmentResults={enrichmentResults} />}
+                  
+                  <Card className="p-0 overflow-hidden bg-black/40 border-white/5">
+                    <div 
+                        className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors border-b border-transparent data-[state=open]:border-white/5"
+                        data-state={consoleOpen ? "open" : "closed"}
+                        onClick={() => setConsoleOpen(!consoleOpen)}
+                    >
+                        <Terminal size={18} className="text-secondary" />
+                        <h2 className="font-semibold text-white/90 uppercase tracking-wider text-xs flex-1">Advanced Logs (Developer View)</h2>
+                        <ChevronDown size={18} className={cn("text-secondary transition-transform duration-300", consoleOpen && "rotate-180")} />
                     </div>
+                    
+                    {consoleOpen && (
+                        <div className="h-[400px] flex flex-col p-4 bg-black/40">
+                            <div className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-2 custom-scrollbar">
+                            {logs.length === 0 && <p className="text-secondary opacity-30 italic">Console output will appear here...</p>}
+                            {logs.map((log, i) => (
+                                <div key={i} className="flex gap-4 border-l border-white/5 pl-4 mb-1">
+                                <span className="text-secondary/40 shrink-0 select-none">[{i.toString().padStart(3, '0')}]</span>
+                                <span className={cn(
+                                    log.includes('ERROR') ? "text-danger" : log.includes('SUCCESS') ? "text-success" : "text-white/80"
+                                )}>{log}</span>
+                                </div>
+                            ))}
+                            <div ref={logEndRef} />
+                            </div>
+                        </div>
+                    )}
                   </Card>
                 </div>
               </div>
