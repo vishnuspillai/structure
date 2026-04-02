@@ -60,79 +60,137 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
   if (!mappingReport) return null;
   
   const cov = mappingReport.mapping_coverage_percentage || 0;
-  let mapMsg = "";
-  let mapStatus = "";
-  if (cov === 0) {
-     mapMsg = "Variants could not be mapped to structure";
-     mapStatus = "❌ No signal";
-  } else if (cov < 80) {
-     mapMsg = "Structural coverage is partial; interpretations may be limited";
-     mapStatus = "⚠ Mapping limitation";
-  }
-
-  let enriched = false;
-  let enrichMsg = "No structural clustering observed for this protein";
-  let enrichStatus = "❌ No signal";
   
-  const renderEnrichment = () => {
-    if (!enrichmentResults || enrichmentResults.length === 0) {
-      return <p className="text-secondary opacity-50 italic text-xs">No enrichment data available.</p>;
-    }
-    return enrichmentResults.map((r, i) => {
-      let t = "";
-      if (r.status === 'computed') {
-         if (r.p_value < 0.05 && r.odds_ratio > 1) {
-             enriched = true;
-         }
-         t = `OR: ${r.odds_ratio.toFixed(2)}, p: ${r.p_value.toExponential(2)}`;
-      } else {
-         t = "Not computed";
-      }
-      return <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-white/5 last:border-0"><span className="font-medium text-white/80">{r.feature}</span><span className="text-white/60 font-mono">{t}</span></div>
-    })
+  // 1. Determine Confidence & Enriched Features
+  let enrichedFeatures = [];
+  let skippedFeatures = [];
+  
+  if (enrichmentResults) {
+      enrichmentResults.forEach(r => {
+          if (r.status === 'computed' && r.p_value < 0.05 && r.odds_ratio > 1) {
+              enrichedFeatures.push(r.feature);
+          } else if (r.status === 'skipped' || r.status === 'error') {
+              skippedFeatures.push(r.feature);
+          }
+      });
   }
 
-  const enrichmentContent = renderEnrichment();
-
-  if (enriched) {
-     enrichMsg = "Variants are significantly enriched in functional regions";
-     enrichStatus = "✅ Strong signal";
-  } else if (enrichmentResults && enrichmentResults.some(r => r.status === 'skipped' || r.status === 'error')) {
-     if (enrichMsg === "No structural clustering observed for this protein") {
-         enrichMsg = "Some functional regions could not be computed (missing data)";
-         enrichStatus = "⚠ Partial signal";
-     }
+  const isEnriched = enrichedFeatures.length > 0;
+  
+  let confidenceLevel = "Low";
+  let confidenceColor = "text-danger";
+  if (cov > 90 && isEnriched) {
+      confidenceLevel = "High";
+      confidenceColor = "text-success";
+  } else if ((cov >= 70 && cov <= 90) || (cov > 90 && !isEnriched) || (cov >= 70 && isEnriched)) {
+      confidenceLevel = "Medium";
+      confidenceColor = "text-warning";
   }
+
+  // 2. Interpretation Block
+  let interpMsg = "";
+  if (cov === 0) {
+      interpMsg = "Variants could not be mapped to the selected structure. Structural interpretation is not possible.";
+  } else if (cov < 80) {
+      interpMsg = "Structural mapping is incomplete; some functional regions could not be evaluated. Results should be interpreted with caution.";
+  } else if (isEnriched) {
+      interpMsg = "Rare variants are significantly enriched in structurally critical regions, suggesting potential functional impact.";
+  } else {
+      interpMsg = "No structural clustering observed. Variants appear distributed without functional enrichment.";
+  }
+
+  // 3. Biological Context
+  let bioContext = "No clear functional localization detected.";
+  if (enrichedFeatures.includes('is_binding_site')) {
+      bioContext = "Variants cluster near ligand-binding regions, potentially affecting protein activity.";
+  } else if (enrichedFeatures.some(f => f.includes('pore') || f.includes('core'))) {
+      bioContext = "Variants localize to core structural regions, possibly impacting stability or function.";
+  }
+
+  // 4. Actionable Insight
+  let insightMsg = "Consider alternative structures for better mapping or evaluating sequence-based predictions.";
+  if (isEnriched && enrichedFeatures.includes('is_binding_site')) {
+      insightMsg = "Prioritize binding-site variants for functional assays or ligand-docking analysis.";
+  } else if (isEnriched) {
+      insightMsg = "Investigate top-scoring structural variants experimentally for stability impacts.";
+  } else if (cov >= 80 && !isEnriched) {
+      insightMsg = "Rely on sequence-based conservation scores (e.g. CADD) rather than spatial clustering for prioritization.";
+  }
+
+  // 5. Reliability Warnings
+  let warnings = [];
+  if (cov < 100) warnings.push(`Mapping incomplete (${cov.toFixed(1)}% coverage)`);
+  if (skippedFeatures.length > 0) warnings.push("Enrichment skipped for some features due to insufficient data or missing ligand");
 
   return (
-    <div className="grid grid-cols-2 gap-4 mb-6">
-       <Card title="Structural Insights" className="bg-accent/5 border-accent/20">
-          <p className="text-sm text-white/90 leading-tight">{cov < 80 ? mapMsg : enrichMsg}</p>
-          <div className="mt-auto pt-4 flex items-center justify-between">
-              <p className="text-xs font-black uppercase tracking-widest text-accent">{cov < 80 ? mapStatus : enrichStatus}</p>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+       
+       {/* Interpretation & Confidence */}
+       <Card title="Scientific Interpretation" className="bg-accent/5 border-accent/20 col-span-1 lg:col-span-2">
+          <p className="text-sm text-white/90 leading-relaxed font-medium">{interpMsg}</p>
+          <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2">
+             <div className="flex items-center justify-between">
+                 <span className="text-xs text-secondary font-bold uppercase tracking-widest">Biological Context</span>
+                 <span className="text-xs text-white/80">{bioContext}</span>
+             </div>
+             <div className="flex items-center justify-between mt-2">
+                 <span className="text-xs font-bold uppercase tracking-widest text-white/60">Confidence Level</span>
+                 <span className={cn("text-xs font-black uppercase tracking-widest bg-black/20 px-2 py-1 rounded border border-white/5", confidenceColor)}>
+                     {confidenceLevel}
+                 </span>
+             </div>
           </div>
        </Card>
-       <Card title="Key Metrics">
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between text-xs py-1 border-b border-white/5"><span className="text-secondary">Total Analysed</span> <span className="font-bold text-white/90">{mappingReport.total_variants}</span></div>
-            <div className="flex justify-between text-xs py-1 border-b border-white/5"><span className="text-secondary">Mapped to Structure</span> <span className="font-bold text-white/90">{mappingReport.mapped_variants} <span className="text-secondary/60">({cov.toFixed(1)}%)</span></span></div>
-            <div className="flex justify-between text-xs py-1"><span className="text-secondary">High Priority</span> <span className="font-bold text-danger">{results.filter(r => r.priority_category === 'High').length}</span></div>
-          </div>
-       </Card>
-       <Card title="Enrichment Signals">
-          <div className="flex flex-col">
-            {enrichmentContent}
-          </div>
-       </Card>
-       <Card title="Top 3 Variants">
-          <div className="flex flex-col gap-2">
-            {results.length === 0 && <p className="text-secondary opacity-50 italic text-xs">No variants prioritized.</p>}
-            {results.slice(0, 3).map((r,i) => (
-                <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-white/5 last:border-0">
-                    <span className="font-medium text-white/90">{r.rsid} <span className="text-secondary text-[10px]">({r.amino_acid_change})</span></span>
-                    <span className="text-accent font-mono font-bold">{r.priority_score.toFixed(1)}</span>
+
+       {/* Actionable Insights & Warnings */}
+       <Card title="Actionable Insights" className="col-span-1">
+          <div className="flex flex-col h-full justify-between gap-4">
+             <div>
+                <p className="text-xs text-secondary font-bold uppercase tracking-widest mb-2">What should you do next?</p>
+                <p className="text-sm text-white/80 leading-relaxed italic border-l-2 border-accent pl-3">{insightMsg}</p>
+             </div>
+             
+             {warnings.length > 0 && (
+                <div className="mt-4 flex flex-col gap-1">
+                   {warnings.map((w, i) => (
+                       <div key={i} className="flex gap-2 items-start bg-danger/10 border border-danger/20 p-2 rounded">
+                          <AlertCircle size={14} className="text-danger shrink-0 mt-0.5" />
+                          <span className="text-[10px] text-danger/90 leading-tight">{w}</span>
+                       </div>
+                   ))}
                 </div>
-            ))}
+             )}
+          </div>
+       </Card>
+
+       {/* Top Variants Expansion */}
+       <Card className="col-span-1 md:col-span-2 lg:col-span-3 p-0 overflow-hidden border-white/5">
+          <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h2 className="font-semibold text-white/90 uppercase tracking-wider text-xs">Top Priority Variants</h2>
+          </div>
+          <div className="flex flex-col">
+            {results.length === 0 && <p className="p-4 text-secondary opacity-50 italic text-xs">No variants prioritized.</p>}
+            {results.slice(0, 3).map((r,i) => {
+                let varInterp = "Predicted pathogenic impact based on combined scores";
+                if (r.domain_region) {
+                    varInterp = `Located in ${r.domain_region}; predicted high impact`;
+                }
+                
+                return (
+                <div key={i} className="flex flex-col md:flex-row justify-between md:items-center gap-3 p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                    <div className="flex flex-col gap-1">
+                        <span className="font-bold text-white/90 text-sm flex items-center gap-2">
+                            {r.rsid} 
+                            <span className="text-accent text-xs font-mono bg-accent/10 px-1.5 py-0.5 rounded">{r.amino_acid_change}</span>
+                        </span>
+                        <span className="text-secondary text-xs italic">{varInterp}</span>
+                    </div>
+                    <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center">
+                        <span className="text-[10px] text-secondary font-bold uppercase tracking-widest hidden md:block">Priority Score</span>
+                        <span className="text-white font-mono font-black text-lg">{r.priority_score.toFixed(2)}</span>
+                    </div>
+                </div>
+            )})}
           </div>
        </Card>
     </div>
