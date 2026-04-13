@@ -20,6 +20,9 @@ cd RAREMISS
 ./start.sh
 ```
 
+To stop:
+`./stop.sh`
+
 ---
 
 ##  Key Insight
