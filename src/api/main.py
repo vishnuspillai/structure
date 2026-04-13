@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 import asyncio
-from orchestrator import PipelineOrchestrator
+from src.api.orchestrator import PipelineOrchestrator
 
 app = FastAPI(title="Structural Prioritization API")
 
