@@ -12,6 +12,16 @@ Unlike conventional pipelines that rely solely on sequence-based predictions, RA
 
 ---
 
+## Quick Start (Linux)
+
+```bash
+git clone https://github.com/vishnuspillai/structure.git RAREMISS
+cd RAREMISS
+./start.sh
+```
+
+---
+
 ##  Key Insight
 
 We demonstrate that:
