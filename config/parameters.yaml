@@ -1,35 +1,56 @@
-af_threshold: 0.001
+af_threshold: 0.0001
 consequence_filter: missense_variant
 domains:
   extracellular_domain:
-  - 23
-  - 233
+  - 99
+  - 122
   intracellular_loop:
-  - 316
-  - 466
+  - 1152
+  - 1480
   m1:
-  - 234
-  - 254
+  - 78
+  - 98
+  m10:
+  - 1014
+  - 1034
+  m11:
+  - 1096
+  - 1116
+  m12:
+  - 1131
+  - 1151
   m2:
-  - 259
-  - 279
+  - 123
+  - 146
   m3:
-  - 292
-  - 315
+  - 196
+  - 216
   m4:
-  - 467
-  - 489
-  signal_peptide:
-  - 1
-  - 22
-gene_symbol: CHRNA7
+  - 223
+  - 243
+  m5:
+  - 299
+  - 319
+  m6:
+  - 340
+  - 358
+  m7:
+  - 859
+  - 879
+  m8:
+  - 919
+  - 939
+  m9:
+  - 991
+  - 1011
+gene_symbol: CFTR
 genome_build: GRCh38
 ligand_mode: auto
 log_dir: logs
 max_variants: 1000
 output_dir: data/processed
 species: homo_sapiens
-structure_id: 7KOx
-transcript_id: ENST00000306901
-translation_id: ENSP00000303727
-uniprot_id: P36544
+structure_id: 6MSM
+transcript_id: ENST00000003084
+translation_id: ENSP00000003084
+uniprot_id: P13569

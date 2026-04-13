@@ -1,7 +1,35 @@
 import subprocess
 import sys
+import argparse
+import yaml
+import os
 
 def run_pipeline():
+    parser = argparse.ArgumentParser(description="Run the RAREMISS pipeline.")
+    parser.add_argument('--gene', type=str, help="Gene symbol to process")
+    parser.add_argument('--structure', type=str, help="PDB Structure ID")
+    parser.add_argument('--af', type=float, help="Allele frequency threshold")
+    args, unknown = parser.parse_known_args()
+
+    # Update config if args provided
+    if args.gene or args.structure or args.af:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "parameters.yaml")
+        if os.path.exists(config_path):
+            with open(config_path, "r") as f:
+                config = yaml.safe_load(f) or {}
+        else:
+            config = {}
+            
+        if args.gene:
+            config['gene_symbol'] = args.gene
+        if args.structure:
+            config['structure_id'] = args.structure
+        if args.af:
+            config['af_threshold'] = args.af
+            
+        with open(config_path, "w") as f:
+            yaml.safe_dump(config, f)
+        print(f"Updated config/parameters.yaml with: {args}")
     steps = [
         ("Module 1: Extract and filter rare baseline variants", "src/module1_variant_mining/variant_mining.py"),
         ("Module 2: Phase A/B/C Annotations", "src/module2_annotation/annotation_layer.py"),
