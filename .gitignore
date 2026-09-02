@@ -29,3 +29,4 @@ build/
 *.webp
 !ui/public/*.png
 !ui/src/assets/*.png
+chat_logs/

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { 
-  Activity, Settings, Terminal, Database, 
+import {
+  Activity, Settings, Terminal, Database,
   ChevronRight, Play, CheckCircle2, AlertCircle, Loader2,
   Table as TableIcon, Box as CubeIcon, Info, Zap, ChevronDown
 } from 'lucide-react';
@@ -15,7 +15,7 @@ function cn(...inputs) {
 // --- Components ---
 
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
-  <button 
+  <button
     onClick={onClick}
     className={cn(
       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
@@ -41,74 +41,74 @@ const Card = ({ children, title, icon: Icon, className }) => (
 
 // --- Simple Molstar Loader (Iframe version for stability in this environment) ---
 const MolstarIframe = ({ pdbId = '7KOX' }) => (
-    <div className="w-full h-full relative rounded-xl overflow-hidden glass border border-white/5">
-        <iframe 
-            src={`https://www.rcsb.org/3d-view/${pdbId}?preset=cartoon&color=chain`}
-            className="w-full h-full border-none bg-black"
-            title="Molstar Viewer"
-        />
-        <div className="absolute bottom-4 right-4 z-10">
-            <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2">
-                <CubeIcon size={14} className="text-accent" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">Interactive 3D View</span>
-            </div>
-        </div>
+  <div className="w-full h-full relative rounded-xl overflow-hidden glass border border-white/5">
+    <iframe
+      src={`https://www.rcsb.org/3d-view/${pdbId}?preset=cartoon&color=chain`}
+      className="w-full h-full border-none bg-black"
+      title="Molstar Viewer"
+    />
+    <div className="absolute bottom-4 right-4 z-10">
+      <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2">
+        <CubeIcon size={14} className="text-accent" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">Interactive 3D View</span>
+      </div>
     </div>
+  </div>
 );
 
 const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
   if (!mappingReport) return null;
-  
+
   const cov = mappingReport.mapping_coverage_percentage || 0;
-  
+
   // 1. Determine Confidence & Enriched Features
   let enrichedFeatures = [];
   let skippedFeatures = [];
-  
+
   if (enrichmentResults) {
-      enrichmentResults.forEach(r => {
-          if (r.status === 'computed' && r.p_value < 0.05 && r.odds_ratio > 1) {
-              enrichedFeatures.push(r.feature);
-          } else if (r.status === 'skipped' || r.status === 'error') {
-              skippedFeatures.push(r.feature);
-          }
-      });
+    enrichmentResults.forEach(r => {
+      if (r.status === 'computed' && r.p_value < 0.05 && r.odds_ratio > 1) {
+        enrichedFeatures.push(r.feature);
+      } else if (r.status === 'skipped' || r.status === 'error') {
+        skippedFeatures.push(r.feature);
+      }
+    });
   }
 
   const isEnriched = enrichedFeatures.length > 0;
-  
+
   let confidenceLevel = "Low";
   let confidenceColor = "text-danger";
   if (cov > 90 && isEnriched) {
-      confidenceLevel = "High";
-      confidenceColor = "text-success";
+    confidenceLevel = "High";
+    confidenceColor = "text-success";
   } else if ((cov >= 70 && cov <= 90) || (cov > 90 && !isEnriched) || (cov >= 70 && isEnriched)) {
-      confidenceLevel = "MEDIUM — due to incomplete structural coverage and lack of statistically significant enrichment";
-      confidenceColor = "text-warning";
+    confidenceLevel = "MEDIUM — due to incomplete structural coverage and lack of statistically significant enrichment";
+    confidenceColor = "text-warning";
   }
 
   // 2. Interpretation Block
   let interpMsg = "";
   if (cov === 0) {
-      interpMsg = "Variants could not be mapped to the selected structure. Structural interpretation is not possible.";
+    interpMsg = "Variants could not be mapped to the selected structure. Structural interpretation is not possible.";
   } else if (cov < 80) {
-      interpMsg = `Interpretation is limited due to incomplete structural coverage (${cov.toFixed(1)}%).`;
+    interpMsg = `Interpretation is limited due to incomplete structural coverage (${cov.toFixed(1)}%).`;
   } else if (isEnriched) {
-      interpMsg = "Rare variants are significantly enriched in structurally critical regions, suggesting potential functional impact.";
+    interpMsg = "Rare variants are significantly enriched in structurally critical regions, suggesting potential functional impact.";
   } else {
-      if (skippedFeatures.length > 0) {
-          interpMsg = "Variants are distributed across structural regions but do not show statistically significant enrichment in any specific functional site.";
-      } else {
-          interpMsg = "No structural clustering observed. Variants appear distributed without functional enrichment.";
-      }
+    if (skippedFeatures.length > 0) {
+      interpMsg = "Variants are distributed across structural regions but do not show statistically significant enrichment in any specific functional site.";
+    } else {
+      interpMsg = "No structural clustering observed. Variants appear distributed without functional enrichment.";
+    }
   }
 
   // 3. Biological Context
   let bioContext = "No clear functional localization detected.";
   if (enrichedFeatures.includes('is_binding_site')) {
-      bioContext = "Variants cluster near ligand-binding regions, potentially affecting protein activity.";
+    bioContext = "Variants cluster near ligand-binding regions, potentially affecting protein activity.";
   } else if (enrichedFeatures.some(f => f.includes('pore') || f.includes('core'))) {
-      bioContext = "Variants localize to core structural regions, possibly impacting stability or function.";
+    bioContext = "Variants localize to core structural regions, possibly impacting stability or function.";
   }
 
   // Calculate distributions
@@ -122,32 +122,32 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
   const corePct = Math.round((coreCount / mappedCount) * 100) || 0;
 
   const renderBar = (pct) => {
-      const blocks = Math.min(10, Math.max(0, Math.round(pct / 10)));
-      return "█".repeat(blocks) + "░".repeat(10 - blocks);
+    const blocks = Math.min(10, Math.max(0, Math.round(pct / 10)));
+    return "█".repeat(blocks) + "░".repeat(10 - blocks);
   }
 
   const renderEnrichmentStats = () => {
-      if (!enrichmentResults || enrichmentResults.length === 0 || enrichmentResults.every(r => r.status !== 'computed')) {
-          return <p className="text-secondary opacity-50 italic text-xs my-2">Enrichment not computed due to insufficient data.</p>;
-      }
-      return (
-          <div className="flex flex-col gap-1 my-2">
-             {enrichmentResults.filter(r => r.status === 'computed').map((r, i) => (
-                 <div key={i} className="flex justify-between text-[11px] bg-black/20 px-2 py-1 rounded border border-white/5">
-                     <span className="text-white/70">{r.feature.replace('is_', '').replace('_', ' ')}</span>
-                     <span className="text-accent font-mono font-bold">OR: {r.odds_ratio?.toFixed(2)} | p: {r.p_value?.toExponential(2)}</span>
-                 </div>
-             ))}
+    if (!enrichmentResults || enrichmentResults.length === 0 || enrichmentResults.every(r => r.status !== 'computed')) {
+      return <p className="text-secondary opacity-50 italic text-xs my-2">Enrichment not computed due to insufficient data.</p>;
+    }
+    return (
+      <div className="flex flex-col gap-1 my-2">
+        {enrichmentResults.filter(r => r.status === 'computed').map((r, i) => (
+          <div key={i} className="flex justify-between text-[11px] bg-black/20 px-2 py-1 rounded border border-white/5">
+            <span className="text-white/70">{r.feature.replace('is_', '').replace('_', ' ')}</span>
+            <span className="text-accent font-mono font-bold">OR: {r.odds_ratio?.toFixed(2)} | p: {r.p_value?.toExponential(2)}</span>
           </div>
-      )
+        ))}
+      </div>
+    )
   };
 
   // 4. Actionable Insight
   let insightMsg = "Prioritize variants using sequence-based scores (e.g., CADD) and consider experimental validation for top-ranked variants, especially those located in conserved or domain-specific regions.";
   if (isEnriched && enrichedFeatures.includes('is_binding_site')) {
-      insightMsg = "Prioritize binding-site variants for functional assays or ligand-docking analysis.";
+    insightMsg = "Prioritize binding-site variants for functional assays or ligand-docking analysis.";
   } else if (isEnriched) {
-      insightMsg = "Investigate top-scoring structural variants experimentally for stability impacts.";
+    insightMsg = "Investigate top-scoring structural variants experimentally for stability impacts.";
   }
 
   // 5. Reliability Warnings
@@ -157,114 +157,115 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-       
-       {/* Interpretation & Confidence */}
-       <Card title="Scientific Interpretation" className="bg-accent/5 border-accent/20 col-span-1 lg:col-span-2">
-          <p className="text-sm text-white/90 leading-relaxed font-medium">{interpMsg}</p>
-          
-          <div className="mt-4 pt-4 border-t border-white/5">
-              <h3 className="text-xs text-secondary font-bold uppercase tracking-widest mb-1">Evidence Summary</h3>
-              <p className="text-[11px] text-white/50 italic mb-4">Observed distribution does not significantly exceed background expectation.</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex flex-col gap-2">
-                      <div className="flex justify-between items-center text-xs">
-                          <span className="text-white/60">Mapping coverage:</span>
-                          <span className="font-mono text-white/90">{cov.toFixed(1)}%</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                          <span className="text-white/60">Binding site:</span>
-                          <span className="font-mono text-accent">{renderBar(bindPct)} ({bindPct}%)</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                          <span className="text-white/60">Interface:</span>
-                          <span className="font-mono text-accent">{renderBar(interfacePct)} ({interfacePct}%)</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                          <span className="text-white/60">Core regions:</span>
-                          <span className="font-mono text-accent">{renderBar(corePct)} ({corePct}%)</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                          <span className="text-white/60">Enrichment computed:</span>
-                          <span className="font-mono text-white/90">{enrichmentResults?.some(r => r.status === 'computed') ? 'Yes' : 'No'}</span>
-                      </div>
-                  </div>
-                  
-                  <div className="flex flex-col border-l border-white/5 pl-6">
-                      <span className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Enrichment Stats</span>
-                      {renderEnrichmentStats()}
-                      <span className="text-[9px] text-secondary/60 italic mt-auto pt-2">
-                          *Strong signals typically show enrichment OR &gt; 1.0 and p &lt; 0.05
-                      </span>
-                  </div>
+
+      {/* Interpretation & Confidence */}
+      <Card title="Scientific Interpretation" className="bg-accent/5 border-accent/20 col-span-1 lg:col-span-2">
+        <p className="text-sm text-white/90 leading-relaxed font-medium">{interpMsg}</p>
+
+        <div className="mt-4 pt-4 border-t border-white/5">
+          <h3 className="text-xs text-secondary font-bold uppercase tracking-widest mb-1">Evidence Summary</h3>
+          <p className="text-[11px] text-white/50 italic mb-4">Observed distribution does not significantly exceed background expectation.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-white/60">Mapping coverage:</span>
+                <span className="font-mono text-white/90">{cov.toFixed(1)}%</span>
               </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-white/60">Binding site:</span>
+                <span className="font-mono text-accent">{renderBar(bindPct)} ({bindPct}%)</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-white/60">Interface:</span>
+                <span className="font-mono text-accent">{renderBar(interfacePct)} ({interfacePct}%)</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-white/60">Core regions:</span>
+                <span className="font-mono text-accent">{renderBar(corePct)} ({corePct}%)</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-white/60">Enrichment computed:</span>
+                <span className="font-mono text-white/90">{enrichmentResults?.some(r => r.status === 'computed') ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col border-l border-white/5 pl-6">
+              <span className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Enrichment Stats</span>
+              {renderEnrichmentStats()}
+              <span className="text-[9px] text-secondary/60 italic mt-auto pt-2">
+                *Strong signals typically show enrichment OR &gt; 1.0 and p &lt; 0.05
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-secondary font-bold uppercase tracking-widest">Biological Context</span>
+            <span className="text-xs text-white/80">{bioContext}</span>
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-white/60">Confidence Level</span>
+            <span className={cn("text-xs font-black uppercase tracking-widest bg-black/20 px-2 py-1 rounded border border-white/5", confidenceColor)}>
+              {confidenceLevel}
+            </span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Actionable Insights & Warnings */}
+      <Card title="Actionable Insights" className="col-span-1">
+        <div className="flex flex-col h-full justify-between gap-4">
+          <div>
+            <p className="text-xs text-secondary font-bold uppercase tracking-widest mb-2">What should you do next?</p>
+            <p className="text-sm text-white/80 leading-relaxed italic border-l-2 border-accent pl-3">{insightMsg}</p>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2">
-             <div className="flex items-center justify-between">
-                 <span className="text-xs text-secondary font-bold uppercase tracking-widest">Biological Context</span>
-                 <span className="text-xs text-white/80">{bioContext}</span>
-             </div>
-             <div className="flex items-center justify-between mt-2">
-                 <span className="text-xs font-bold uppercase tracking-widest text-white/60">Confidence Level</span>
-                 <span className={cn("text-xs font-black uppercase tracking-widest bg-black/20 px-2 py-1 rounded border border-white/5", confidenceColor)}>
-                     {confidenceLevel}
-                 </span>
-             </div>
-          </div>
-       </Card>
-
-       {/* Actionable Insights & Warnings */}
-       <Card title="Actionable Insights" className="col-span-1">
-          <div className="flex flex-col h-full justify-between gap-4">
-             <div>
-                <p className="text-xs text-secondary font-bold uppercase tracking-widest mb-2">What should you do next?</p>
-                <p className="text-sm text-white/80 leading-relaxed italic border-l-2 border-accent pl-3">{insightMsg}</p>
-             </div>
-             
-             {warnings.length > 0 && (
-                <div className="mt-4 flex flex-col gap-1">
-                   {warnings.map((w, i) => (
-                       <div key={i} className="flex gap-2 items-start bg-danger/10 border border-danger/20 p-2 rounded">
-                          <AlertCircle size={14} className="text-danger shrink-0 mt-0.5" />
-                          <span className="text-[10px] text-danger/90 leading-tight">{w}</span>
-                       </div>
-                   ))}
+          {warnings.length > 0 && (
+            <div className="mt-4 flex flex-col gap-1">
+              {warnings.map((w, i) => (
+                <div key={i} className="flex gap-2 items-start bg-danger/10 border border-danger/20 p-2 rounded">
+                  <AlertCircle size={14} className="text-danger shrink-0 mt-0.5" />
+                  <span className="text-[10px] text-danger/90 leading-tight">{w}</span>
                 </div>
-             )}
-          </div>
-       </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
 
-       {/* Top Variants Expansion */}
-       <Card className="col-span-1 md:col-span-2 lg:col-span-3 p-0 overflow-hidden border-white/5">
-          <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
-              <h2 className="font-semibold text-white/90 uppercase tracking-wider text-xs">Top Priority Variants</h2>
-          </div>
-          <div className="flex flex-col">
-            {results.length === 0 && <p className="p-4 text-secondary opacity-50 italic text-xs">No variants prioritized.</p>}
-            {results.slice(0, 3).map((r,i) => {
-                let varInterp = "Predicted pathogenic impact based on combined scores";
-                if (r.domain_region) {
-                    varInterp = `Located in ${r.domain_region}; predicted high impact`;
-                }
-                
-                return (
-                <div key={i} className="flex flex-col md:flex-row justify-between md:items-center gap-3 p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                    <div className="flex flex-col gap-1">
-                        <span className="font-bold text-white/90 text-sm flex items-center gap-2">
-                            {r.rsid} 
-                            <span className="text-accent text-xs font-mono bg-accent/10 px-1.5 py-0.5 rounded">{r.amino_acid_change}</span>
-                        </span>
-                        <span className="text-secondary text-xs italic">{varInterp}</span>
-                    </div>
-                    <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center">
-                        <span className="text-[10px] text-secondary font-bold uppercase tracking-widest hidden md:block">Priority Score</span>
-                        <span className="text-white font-mono font-black text-lg">{r.priority_score.toFixed(2)}</span>
-                    </div>
+      {/* Top Variants Expansion */}
+      <Card className="col-span-1 md:col-span-2 lg:col-span-3 p-0 overflow-hidden border-white/5">
+        <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+          <h2 className="font-semibold text-white/90 uppercase tracking-wider text-xs">Top Priority Variants</h2>
+        </div>
+        <div className="flex flex-col">
+          {results.length === 0 && <p className="p-4 text-secondary opacity-50 italic text-xs">No variants prioritized.</p>}
+          {results.slice(0, 3).map((r, i) => {
+            let varInterp = "Predicted pathogenic impact based on combined scores";
+            if (r.domain_region) {
+              varInterp = `Located in ${r.domain_region}; predicted high impact`;
+            }
+
+            return (
+              <div key={i} className="flex flex-col md:flex-row justify-between md:items-center gap-3 p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                <div className="flex flex-col gap-1">
+                  <span className="font-bold text-white/90 text-sm flex items-center gap-2">
+                    {r.rsid}
+                    <span className="text-accent text-xs font-mono bg-accent/10 px-1.5 py-0.5 rounded">{r.amino_acid_change}</span>
+                  </span>
+                  <span className="text-secondary text-xs italic">{varInterp}</span>
                 </div>
-            )})}
-          </div>
-       </Card>
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center">
+                  <span className="text-[10px] text-secondary font-bold uppercase tracking-widest hidden md:block">Priority Score</span>
+                  <span className="text-white font-mono font-black text-lg">{r.priority_score.toFixed(2)}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </Card>
     </div>
   )
 }
@@ -280,7 +281,7 @@ export default function App() {
   const [enrichmentResults, setEnrichmentResults] = useState(null);
   const [currentStep, setCurrentStep] = useState(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
-  
+
   const logEndRef = useRef(null);
   const ws = useRef(null);
 
@@ -318,7 +319,7 @@ export default function App() {
     try {
       const res = await axios.get(`http://localhost:8000/data/${config.gene_symbol.toLowerCase()}_ranked_variants.csv`);
       setResults(res.data);
-      
+
       try {
         const mappingRes = await axios.get(`http://localhost:8000/data/${config.gene_symbol.toLowerCase()}_mapping_report.json`);
         setMappingReport(mappingRes.data);
@@ -332,7 +333,7 @@ export default function App() {
       } catch (e) {
         console.warn("Failed to load enrichment results", e);
       }
-      
+
     } catch (e) {
       console.error("Failed to load results", e);
     }
@@ -343,7 +344,7 @@ export default function App() {
     setRunning(true);
     setLogs([]);
     setLogs(prev => [...prev, "Updating parameters and initiating pipeline execution..."]);
-    
+
     try {
       await axios.post('http://localhost:8000/run_pipeline', config);
     } catch (e) {
@@ -351,13 +352,13 @@ export default function App() {
       setRunning(false);
       return;
     }
-    
+
     ws.current = new WebSocket('ws://localhost:8000/ws/run');
-    
+
     ws.current.onopen = () => {
       ws.current.send(JSON.stringify({ action: 'run_all' }));
     };
-    
+
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'log') {
@@ -412,15 +413,15 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto bg-gradient-to-br from-transparent to-accent/5 p-8">
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
-          
+
           {activeTab === 'pipeline' && (
             <>
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight">Pipeline Control</h2>
-                  <p className="text-secondary text-sm">Orchestrate structural-genomic prioritization routines.</p>
+
                 </div>
-                <button 
+                <button
                   onClick={runPipeline}
                   disabled={running}
                   className={cn(
@@ -464,33 +465,33 @@ export default function App() {
 
                 <div className="col-span-8 flex flex-col gap-6">
                   {mappingReport && !running && <SummaryPanel results={results} mappingReport={mappingReport} enrichmentResults={enrichmentResults} />}
-                  
+
                   <Card className="p-0 overflow-hidden bg-black/40 border-white/5">
-                    <div 
-                        className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors border-b border-transparent data-[state=open]:border-white/5"
-                        data-state={consoleOpen ? "open" : "closed"}
-                        onClick={() => setConsoleOpen(!consoleOpen)}
+                    <div
+                      className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors border-b border-transparent data-[state=open]:border-white/5"
+                      data-state={consoleOpen ? "open" : "closed"}
+                      onClick={() => setConsoleOpen(!consoleOpen)}
                     >
-                        <Terminal size={18} className="text-secondary" />
-                        <h2 className="font-semibold text-white/90 uppercase tracking-wider text-xs flex-1">Advanced Logs (Developer View)</h2>
-                        <ChevronDown size={18} className={cn("text-secondary transition-transform duration-300", consoleOpen && "rotate-180")} />
+                      <Terminal size={18} className="text-secondary" />
+                      <h2 className="font-semibold text-white/90 uppercase tracking-wider text-xs flex-1">Advanced Logs (Developer View)</h2>
+                      <ChevronDown size={18} className={cn("text-secondary transition-transform duration-300", consoleOpen && "rotate-180")} />
                     </div>
-                    
+
                     {consoleOpen && (
-                        <div className="h-[400px] flex flex-col p-4 bg-black/40">
-                            <div className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-2 custom-scrollbar">
-                            {logs.length === 0 && <p className="text-secondary opacity-30 italic">Console output will appear here...</p>}
-                            {logs.map((log, i) => (
-                                <div key={i} className="flex gap-4 border-l border-white/5 pl-4 mb-1">
-                                <span className="text-secondary/40 shrink-0 select-none">[{i.toString().padStart(3, '0')}]</span>
-                                <span className={cn(
-                                    log.includes('ERROR') ? "text-danger" : log.includes('SUCCESS') ? "text-success" : "text-white/80"
-                                )}>{log}</span>
-                                </div>
-                            ))}
-                            <div ref={logEndRef} />
+                      <div className="h-[400px] flex flex-col p-4 bg-black/40">
+                        <div className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-2 custom-scrollbar">
+                          {logs.length === 0 && <p className="text-secondary opacity-30 italic">Console output will appear here...</p>}
+                          {logs.map((log, i) => (
+                            <div key={i} className="flex gap-4 border-l border-white/5 pl-4 mb-1">
+                              <span className="text-secondary/40 shrink-0 select-none">[{i.toString().padStart(3, '0')}]</span>
+                              <span className={cn(
+                                log.includes('ERROR') ? "text-danger" : log.includes('SUCCESS') ? "text-success" : "text-white/80"
+                              )}>{log}</span>
                             </div>
+                          ))}
+                          <div ref={logEndRef} />
                         </div>
+                      </div>
                     )}
                   </Card>
                 </div>
@@ -500,13 +501,13 @@ export default function App() {
 
           {activeTab === 'data' && (
             <div className="flex flex-col gap-8">
-               <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight text-white">Prioritized Variants</h2>
                   <p className="text-secondary text-sm">Ranked pathogenic candidates with structural evidence.</p>
                 </div>
                 <button onClick={loadResults} className="text-xs bg-accent/10 border border-accent/20 text-accent px-4 py-2 rounded-lg font-bold hover:bg-accent/20 transition-all">
-                    Reload Dataset
+                  Reload Dataset
                 </button>
               </div>
 
@@ -542,8 +543,8 @@ export default function App() {
                                 <span className={cn(
                                   "px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest",
                                   row.priority_category === 'High' ? "bg-danger/20 text-danger border border-danger/30" :
-                                  row.priority_category === 'Medium' ? "bg-warning/20 text-warning border border-warning/30" :
-                                  "bg-secondary/20 text-secondary border border-secondary/30"
+                                    row.priority_category === 'Medium' ? "bg-warning/20 text-warning border border-warning/30" :
+                                      "bg-secondary/20 text-secondary border border-secondary/30"
                                 )}>
                                   {row.priority_category}
                                 </span>
@@ -557,27 +558,27 @@ export default function App() {
                 </div>
 
                 <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
-                    <div className="h-[400px]">
-                        <MolstarIframe pdbId={config.structure_id} />
-                    </div>
-                    <Card title="Structural Insights" icon={CubeIcon} className="bg-accent/5 border-accent/10">
-                        <div className="space-y-4">
-                            <div className="flex gap-3">
-                                <div className="p-2 bg-success/20 rounded-lg h-fit"><CheckCircle2 className="text-success" size={16} /></div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-white/90">Pore Regions</h4>
-                                    <p className="text-xs text-secondary leading-relaxed">Variants mapped here are analyzed for their effect on ion conduction and channel gating mechanisms.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <div className="p-2 bg-accent/20 rounded-lg h-fit"><Info className="text-accent" size={16} /></div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-white/90">Ligand Binding</h4>
-                                    <p className="text-xs text-secondary leading-relaxed">Proximity to nicotine/acetylcholine binding sites is automatically computed in Module 5.</p>
-                                </div>
-                            </div>
+                  <div className="h-[400px]">
+                    <MolstarIframe pdbId={config.structure_id} />
+                  </div>
+                  <Card title="Structural Insights" icon={CubeIcon} className="bg-accent/5 border-accent/10">
+                    <div className="space-y-4">
+                      <div className="flex gap-3">
+                        <div className="p-2 bg-success/20 rounded-lg h-fit"><CheckCircle2 className="text-success" size={16} /></div>
+                        <div>
+                          <h4 className="text-sm font-bold text-white/90">Pore Regions</h4>
+                          <p className="text-xs text-secondary leading-relaxed">Variants mapped here are analyzed for their effect on ion conduction and channel gating mechanisms.</p>
                         </div>
-                    </Card>
+                      </div>
+                      <div className="flex gap-3">
+                        <div className="p-2 bg-accent/20 rounded-lg h-fit"><Info className="text-accent" size={16} /></div>
+                        <div>
+                          <h4 className="text-sm font-bold text-white/90">Ligand Binding</h4>
+                          <p className="text-xs text-secondary leading-relaxed">Proximity to nicotine/acetylcholine binding sites is automatically computed in Module 5.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
               </div>
             </div>
@@ -595,59 +596,59 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-secondary tracking-widest">Target Gene</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={config.gene_symbol}
-                        onChange={(e) => setConfig({...config, gene_symbol: e.target.value})}
+                        onChange={(e) => setConfig({ ...config, gene_symbol: e.target.value })}
                         className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all font-bold"
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-secondary tracking-widest">Target Species</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={config.species}
-                        onChange={(e) => setConfig({...config, species: e.target.value})}
+                        onChange={(e) => setConfig({ ...config, species: e.target.value })}
                         className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all font-bold"
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase font-bold text-secondary tracking-widest">Structure ID (PDB)</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={config.structure_id}
-                        onChange={(e) => setConfig({...config, structure_id: e.target.value})}
+                        onChange={(e) => setConfig({ ...config, structure_id: e.target.value })}
                         className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all font-bold uppercase"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-secondary tracking-widest">AF Threshold</label>
-                        <input 
-                        type="number" 
+                      <label className="text-[10px] uppercase font-bold text-secondary tracking-widest">AF Threshold</label>
+                      <input
+                        type="number"
                         step="0.0001"
                         value={config.af_threshold}
-                        onChange={(e) => setConfig({...config, af_threshold: parseFloat(e.target.value)})}
+                        onChange={(e) => setConfig({ ...config, af_threshold: parseFloat(e.target.value) })}
                         className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all font-mono"
-                        />
+                      />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] uppercase font-bold text-secondary tracking-widest">Mutation Type</label>
-                        <select 
+                      <label className="text-[10px] uppercase font-bold text-secondary tracking-widest">Mutation Type</label>
+                      <select
                         value={config.consequence_filter}
-                        onChange={(e) => setConfig({...config, consequence_filter: e.target.value})}
+                        onChange={(e) => setConfig({ ...config, consequence_filter: e.target.value })}
                         className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm focus:border-accent outline-none transition-all appearance-none cursor-pointer"
-                        >
-                            <option value="missense_variant">Missense Variant</option>
-                            <option value="stop_gained">Stop Gained</option>
-                            <option value="all">All Non-Synonymous</option>
-                        </select>
+                      >
+                        <option value="missense_variant">Missense Variant</option>
+                        <option value="stop_gained">Stop Gained</option>
+                        <option value="all">All Non-Synonymous</option>
+                      </select>
                     </div>
                   </div>
 
                   <div className="pt-6 border-t border-white/5">
-                    <button 
+                    <button
                       onClick={async () => {
                         try {
                           await axios.post('http://localhost:8000/config', config);
@@ -669,7 +670,7 @@ export default function App() {
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-accent">Framework Notes</h4>
                   <p className="text-xs text-secondary leading-relaxed">
-                    Changes to the AF threshold will trigger a fresh query to Ensembl REST during the next Module 1 execution. 
+                    Changes to the AF threshold will trigger a fresh query to Ensembl REST during the next Module 1 execution.
                     Ensure the Target Gene matches the active Structure ID (e.g. {config.structure_id} for {config.gene_symbol}).
                   </p>
                 </div>
