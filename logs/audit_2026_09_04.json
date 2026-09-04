@@ -1,0 +1,137 @@
+{
+  "audit_id": "RAREMISS-AUDIT-2026-09-04",
+  "audit_date": "2026-09-04",
+  "auditor": "Antigravity (automated forensic review)",
+  "commit_at_audit": "86ab0bb",
+  "commit_after_fixes": "4e3dc86",
+  "repository": "https://github.com/vishnuspillai/structure",
+  "branch": "main",
+  "release_readiness_before": "NOT READY",
+  "release_readiness_after": "VALIDATION READY",
+  "test_results": {
+    "total": 62,
+    "passed": 62,
+    "failed": 0,
+    "test_file": "tests/test_integrity.py"
+  },
+  "bugs_found": [
+    {
+      "id": "BUG-01",
+      "severity": "CRITICAL",
+      "file": "src/module4_prioritization/prioritization.py",
+      "root_cause": "Python non-empty string 'unknown' is truthy. row.get('is_binding_site', False) evaluated True for 'unknown', awarding +4 structural score points to every spatially unresolved variant.",
+      "empirical_evidence": "CHRNA7: is_binding_site={'unknown': 961}. ALL 961 variants received spurious +4 binding-site bonus. Rankings were invalid.",
+      "fix": "Changed all structural feature checks to == True (not 'is True'). This correctly evaluates: bool True -> True, float 1.0 (post-CSV) -> True, string 'unknown' -> False, NaN -> False.",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-02",
+      "severity": "CRITICAL",
+      "file": "src/module3_spatial/spatial_annotation.py",
+      "root_cause": "Spatially unresolved variants were assigned is_interface=False and is_tm_core=False. This conflates UNKNOWN with FALSE: a variant that cannot be assessed is treated as definitively NOT at the interface. Enrichment denominators were inflated.",
+      "empirical_evidence": "CHRNA7 has 238 spatially unresolved variants. All got is_interface=False. This added 238 false-negatives to the D cell of the enrichment table.",
+      "fix": "Changed all unresolved-variant flags to 'unknown'. Applies to is_interface, is_tm_core, is_pore_region, is_transmembrane. Three-state semantics now explicit: True=positive, False=assessed-negative, 'unknown'=cannot-assess.",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-03",
+      "severity": "CRITICAL",
+      "file": "src/api/main.py",
+      "root_cause": "WebSocket handler sent {'type': 'pipeline_complete'} unconditionally after the step for-loop, even when a step failed and caused a break. The send_json call was positioned after the loop body at the same indentation level.",
+      "empirical_evidence": "Character position analysis: 'if not success' at char 3954, 'pipeline_complete' at char 4052. Message sent regardless of break.",
+      "fix": "Added pipeline_succeeded boolean. Set False on any step failure, send pipeline_failed with message. Only send pipeline_complete when all steps succeed.",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-04",
+      "severity": "CRITICAL",
+      "file": "ui/src/App.jsx",
+      "root_cause": "Frontend SummaryPanel checked r.status === 'computed' to detect enrichment success, but structural_enrichment_ci.py produces {\"status\": \"success\"}. Status key never matched. Enrichment UI was permanently empty.",
+      "empirical_evidence": "CHRNA7 enrichment JSON: {\"feature\": \"is_pore_core\", \"status\": \"success\", \"odds_ratio\": 13.4, \"p_value\": 9.1e-05}. This OR=13.4 (p<0.001) result was never displayed.",
+      "fix": "All occurrences of r.status === 'computed' updated to r.status === 'success' (3 locations). Added pipeline_failed handler in WebSocket message receiver.",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-05",
+      "severity": "HIGH",
+      "file": "src/module1_variant_mining/variant_mining.py",
+      "root_cause": "AF=0.0 used as default for variants with no gnomAD frequency. Module 2 Phase A corrects this but Module 1 CSV retains corrupt AF data.",
+      "empirical_evidence": "CHRNA7 Module 1 output: AF==0.0 count=438, AF>0 count=0.",
+      "fix": "Documented as known limitation. Module 2 Phase A overwrites AF with correct gnomAD values. M1 CSV is intermediate only.",
+      "status": "DOCUMENTED"
+    },
+    {
+      "id": "BUG-06",
+      "severity": "HIGH",
+      "file": "src/module2_annotation/annotation_layer.py",
+      "root_cause": "Phase A AF re-filtering hardcoded threshold 0.001. Config af_threshold parameter was read and stored but never passed to phase_a_coordinate_correction(). User-configured thresholds had no effect.",
+      "empirical_evidence": "Line 128 original: df[(df['gnomAD_AF'].isna()) | (df['gnomAD_AF'] < 0.001)]. config['af_threshold'] was read but unused in this step.",
+      "fix": "Added af_threshold parameter to phase_a_coordinate_correction(). Caller extracts config.get('af_threshold', 0.001) and passes it. Filter now uses configured value.",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-07",
+      "severity": "HIGH",
+      "file": "src/module5_mechanistic/mechanistic_metrics.py",
+      "root_cause": "Domain name comparison used uppercase string literal 'M2'. Module 2 assigns domain names in lowercase ('m2'). Comparison always failed.",
+      "empirical_evidence": "if domain == 'M2': always False because domain values are 'm2', 'extracellular_domain', etc.",
+      "fix": "Changed to: if str(domain).lower() == 'm2': Radial distance from pentamer center now correctly computed for pore-region variants.",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-08",
+      "severity": "MEDIUM",
+      "file": "src/module6_clinical/clinical_review.py",
+      "root_cause": "Variable 'data' assigned inside 'if r.status_code == 200' block. Next line 'ids = data.get(...)' was at parent indentation level, executing on non-200 responses where data was undefined. NameError silently caught by outer except.",
+      "empirical_evidence": "Indentation analysis: ids = data.get() at same level as if-block, not inside it.",
+      "fix": "Moved ids = data.get() and entire fetch block inside the if r.status_code == 200 scope. Added else clause to log HTTP error codes.",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-09",
+      "severity": "MEDIUM",
+      "file": "src/module7_validation/structural_enrichment_ci.py",
+      "root_cause": "Binding-site enrichment was skipped when ANY variant had is_binding_site='unknown'. Since spatially unresolved variants always get 'unknown', this condition fired on every run regardless of whether a ligand was present. Could not distinguish 'no ligand' from 'ligand present but some variants unresolved'.",
+      "empirical_evidence": "PAH has ligands H4B + FE2 + SO4 (mapping_report ligand_available=True). 45 variants have is_binding_site=1.0. Enrichment was still marked skipped as 'no ligand available'.",
+      "fix": "Skip only when no True/False binding-site values exist (bs_has_assessed=False). Added second skip condition: ligand detected but no variants within distance threshold. Contingency table now uses == True / == False to exclude 'unknown' values from cells.",
+      "status": "FIXED"
+    }
+  ],
+  "remaining_limitations": [
+    "No multiple testing correction for 3 simultaneous enrichment tests.",
+    "Ensembl/gnomAD API results not versioned; different query dates may yield different variants.",
+    "Random downsampling seed hardcoded at 42; not configurable via config panel.",
+    "Crystallographic additives (SO4, glycerol, ions) counted as ligands; biological relevance not verified automatically.",
+    "Only chain A used for spatial computations; valid for homomers but documented.",
+    "SIFTS mapping queried live in both Module 3 and Module 5 independently.",
+    "Module-level code execution in all pipeline scripts prevents unit testing without full pipeline execution.",
+    "Dead legacy scripts (phase_b_structural.py, phase_c_functional.py) not removed; risk of user confusion.",
+    "Non-gene-namespaced output files (mod4_output.txt, output_mod5.txt) overwritten on every run."
+  ],
+  "data_lineage_summary": {
+    "chrna7": {
+      "m1_rows": 438,
+      "m2a_rows": 418,
+      "m3_rows": 418,
+      "m4_rows": 418,
+      "row_drops_m1_to_m2a": 20,
+      "reason_for_drop": "AF re-filtering removes variants above af_threshold with real gnomAD data",
+      "duplicate_rsids_any_stage": false
+    },
+    "pah": {
+      "ligand_available": true,
+      "ligand_identifiers": ["FE2", "H4B", "SO4", "TIH"],
+      "mapping_coverage_pct": 74.5,
+      "spatially_unresolved_count": 143,
+      "enrichment_result": "all_skipped_insufficient_data"
+    }
+  },
+  "enrichment_results_verified": {
+    "chrna7": [
+      {"feature": "is_binding_site", "status": "skipped", "reason": "no ligand in 7KOX"},
+      {"feature": "is_pore_core", "status": "success", "odds_ratio": 13.4, "p_value": 9.1e-05},
+      {"feature": "is_interface", "status": "success", "odds_ratio": 3.59, "p_value": 2.57e-05}
+    ],
+    "note": "CHRNA7 pore-core enrichment OR=13.4 was previously invisible in UI due to BUG-04. Now displays correctly."
+  }
+}
