@@ -110,6 +110,7 @@ async def websocket_endpoint(websocket: WebSocket):
             cmd = json.loads(data)
             
             if cmd.get("action") == "run_all":
+                pipeline_succeeded = True
                 for i in range(len(orchestrator.steps)):
                     await websocket.send_json({"type": "step_start", "index": i})
                     success, desc = await orchestrator.run_step(i)
@@ -124,8 +125,14 @@ async def websocket_endpoint(websocket: WebSocket):
                         "success": success
                     })
                     if not success:
+                        pipeline_succeeded = False
+                        await websocket.send_json({
+                            "type": "pipeline_failed",
+                            "message": f"Step '{desc}' failed. Check logs."
+                        })
                         break
-                await websocket.send_json({"type": "pipeline_complete"})
+                if pipeline_succeeded:
+                    await websocket.send_json({"type": "pipeline_complete"})
                 
     except WebSocketDisconnect:
         pass

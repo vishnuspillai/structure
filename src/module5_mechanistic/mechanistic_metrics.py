@@ -115,7 +115,7 @@ def get_metrics(row):
     min_interface = min((np.linalg.norm(ta.coord - oa.coord) for ta in target_atoms for oa in other_chain_atoms), default=np.nan)
     
     radial_dist = np.nan
-    if domain == 'M2':
+    if str(domain).lower() == 'm2':
         res_com = np.mean([a.coord for a in target_atoms], axis=0)
         radial_dist = np.linalg.norm(res_com - pentamer_com)
         

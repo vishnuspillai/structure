@@ -33,7 +33,7 @@ def get_session():
     session.mount('https://', HTTPAdapter(max_retries=retries))
     return session
 
-def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, output_path: str) -> pd.DataFrame:
+def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, output_path: str, af_threshold: float = 0.001) -> pd.DataFrame:
     """Phase A: Fetch GRCh38 coordinates via /variation API, update chrom, pos and audit AF."""
     url = "https://rest.ensembl.org/variation/homo_sapiens?pops=1"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
@@ -123,10 +123,10 @@ def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, outp
         
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
-    # Rare AF filtering: drop variants where updated AF is > 0.001
+    # Rare AF filtering: drop variants where updated AF exceeds configured threshold
     original_count = len(df)
-    df = df[(df['gnomAD_AF'].isna()) | (df['gnomAD_AF'] < 0.001)].copy()
-    logger.info(f"Phase A: AF re-filtering removed {original_count - len(df)} variants > 0.001 AF.")
+    df = df[(df['gnomAD_AF'].isna()) | (df['gnomAD_AF'] < af_threshold)].copy()
+    logger.info(f"Phase A: AF re-filtering removed {original_count - len(df)} variants above AF threshold ({af_threshold}).")
     
     df.to_csv(output_path, index=False)
     logger.info(f"Phase A: Corrected CSV saved to {output_path}")
@@ -336,8 +336,9 @@ def main():
         df = pd.read_csv(input_csv)
         
         # Phase A
+        af_threshold = config.get('af_threshold', 0.001)
         corrected_csv_path = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_master_corrected.csv")
-        df_corrected = phase_a_coordinate_correction(df, logger, corrected_csv_path)
+        df_corrected = phase_a_coordinate_correction(df, logger, corrected_csv_path, af_threshold)
         
         # Phase B
         df_domain = phase_b_structural_domains(df_corrected, logger, config_path, config)

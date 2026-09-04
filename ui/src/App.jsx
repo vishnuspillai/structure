@@ -67,7 +67,7 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
 
   if (enrichmentResults) {
     enrichmentResults.forEach(r => {
-      if (r.status === 'computed' && r.p_value < 0.05 && r.odds_ratio > 1) {
+      if (r.status === 'success' && r.p_value < 0.05 && r.odds_ratio > 1) {
         enrichedFeatures.push(r.feature);
       } else if (r.status === 'skipped' || r.status === 'error') {
         skippedFeatures.push(r.feature);
@@ -127,12 +127,12 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
   }
 
   const renderEnrichmentStats = () => {
-    if (!enrichmentResults || enrichmentResults.length === 0 || enrichmentResults.every(r => r.status !== 'computed')) {
+    if (!enrichmentResults || enrichmentResults.length === 0 || enrichmentResults.every(r => r.status !== 'success')) {
       return <p className="text-secondary opacity-50 italic text-xs my-2">Enrichment not computed due to insufficient data.</p>;
     }
     return (
       <div className="flex flex-col gap-1 my-2">
-        {enrichmentResults.filter(r => r.status === 'computed').map((r, i) => (
+        {enrichmentResults.filter(r => r.status === 'success').map((r, i) => (
           <div key={i} className="flex justify-between text-[11px] bg-black/20 px-2 py-1 rounded border border-white/5">
             <span className="text-white/70">{r.feature.replace('is_', '').replace('_', ' ')}</span>
             <span className="text-accent font-mono font-bold">OR: {r.odds_ratio?.toFixed(2)} | p: {r.p_value?.toExponential(2)}</span>
@@ -369,8 +369,11 @@ export default function App() {
         // Step finished
       } else if (data.type === 'pipeline_complete') {
         setRunning(false);
-        setLogs(prev => [...prev, "Pipeline completed successfully!"]);
+        setLogs(prev => [...prev, '✅ Pipeline completed successfully!']);
         setTimeout(loadResults, 1000);
+      } else if (data.type === 'pipeline_failed') {
+        setRunning(false);
+        setLogs(prev => [...prev, `❌ PIPELINE FAILED: ${data.message}`]);
       } else if (data.type === 'error') {
         setLogs(prev => [...prev, `ERROR: ${data.message}`]);
         setRunning(false);

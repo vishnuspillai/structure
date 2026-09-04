@@ -29,20 +29,23 @@ def compute_score(row):
         elif 1e-5 <= af < 1e-4:
             score += 1
 
-    # Structural
+    # Structural — only award points for explicit True/1.0 values.
+    # 'unknown' / NaN / None must NEVER score as positive.
+    # NOTE: After CSV round-trip, Python bool True becomes numpy float64 1.0.
+    # Use == True (not 'is True') so both bool True and float 1.0 are handled.
+    # The string 'unknown' evaluates to: 'unknown' == True -> False. Correct.
     struct_score = 0
-    if row.get('is_binding_site', False):
+    if row.get('is_binding_site') == True:
         struct_score += 4
-    # User mentioned is_pore_core, checking for both possible names from earlier phrasing
-    if row.get('is_pore_core', False) or row.get('is_pore_region', False):
+    # Accept either column name produced by different module versions
+    is_pore = (row.get('is_pore_core') == True) or (row.get('is_pore_region') == True)
+    if is_pore:
         struct_score += 4
-    if row.get('is_interface', False):
+    if row.get('is_interface') == True:
         struct_score += 2
-    
-    is_pore = row.get('is_pore_core', False) or row.get('is_pore_region', False)
-    if row.get('is_tm_core', False) and not is_pore:
+    if (row.get('is_tm_core') == True) and not is_pore:
         struct_score += 1
-    
+
     # Cap total structural points
     struct_score = min(struct_score, 4)
     score += struct_score

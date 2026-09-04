@@ -24,24 +24,26 @@ def query_clinvar(rsid):
         r = requests.get(url, timeout=15)
         if r.status_code == 200:
             data = r.json()
-        ids = data.get("esearchresult", {}).get("idlist", [])
-        if ids:
-            fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvar&id={','.join(ids)}&retmode=json"
-            f_r = requests.get(fetch_url, timeout=15)
-            if f_r.status_code == 200:
-                f_data = f_r.json()
-                result = f_data.get('result', {})
-                for uid in ids:
-                    record = result.get(uid, {})
-                    cg = record.get('clinical_significance', {})
-                    sig = cg.get('description', 'Not Provided')
-                    
-                    traits = record.get('trait_set', [])
-                    condition = "Not Provided"
-                    if traits:
-                        condition = traits[0].get('trait_name', 'Not Provided')
+            ids = data.get("esearchresult", {}).get("idlist", [])
+            if ids:
+                fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvar&id={','.join(ids)}&retmode=json"
+                f_r = requests.get(fetch_url, timeout=15)
+                if f_r.status_code == 200:
+                    f_data = f_r.json()
+                    result = f_data.get('result', {})
+                    for uid in ids:
+                        record = result.get(uid, {})
+                        cg = record.get('clinical_significance', {})
+                        sig = cg.get('description', 'Not Provided')
                         
-                    return sig, condition
+                        traits = record.get('trait_set', [])
+                        condition = "Not Provided"
+                        if traits:
+                            condition = traits[0].get('trait_name', 'Not Provided')
+                            
+                        return sig, condition
+        else:
+            print(f"ClinVar HTTP {r.status_code} for {rsid}")
     except Exception as e:
         print(f"ClinVar query failed for {rsid}: {e}")
     return "Not found", "Not found"

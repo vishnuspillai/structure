@@ -22,10 +22,18 @@ features = {
 
 output = []
 
-# Check if binding site analysis was performed
+# Check if binding site analysis was performed and has positive calls
+# Skip if: (a) column missing, (b) no ligand detected (all 'unknown'), or
+# (c) ligand present but no binding-site positive calls found
 if 'is_binding_site' in df.columns:
-    if 'unknown' in df['is_binding_site'].unique():
-        msg = "Binding-site enrichment not computed (no ligand available)"
+    bs_true_count = (df['is_binding_site'] == True).sum()
+    bs_has_assessed = df['is_binding_site'].isin([True, False]).any()
+    if not bs_has_assessed:
+        msg = "Binding-site enrichment not computed (no ligand available — all binding-site values are unresolved)"
+        print(msg)
+        output.append({"feature": "is_binding_site", "status": "skipped", "reason": msg})
+    elif bs_true_count == 0:
+        msg = "Binding-site enrichment skipped (ligand detected but no variants within 5 Å)"
         print(msg)
         output.append({"feature": "is_binding_site", "status": "skipped", "reason": msg})
     else:
@@ -37,15 +45,25 @@ not_high_mask = df['priority_category'] != 'High'
 for display_name, col_name in features.items():
     if col_name not in df.columns:
         continue
-    
-    A = len(df[high_mask & (df[col_name] == True)])
-    B = len(df[high_mask & (df[col_name] == False)])
-    C = len(df[not_high_mask & (df[col_name] == True)])
-    D = len(df[not_high_mask & (df[col_name] == False)])
-    
+
+    # Use explicit == True so that 'unknown' values are excluded from both cells
+    col_true = df[col_name] == True
+    col_false = df[col_name] == False
+
+    A = len(df[high_mask & col_true])
+    B = len(df[high_mask & col_false])
+    C = len(df[not_high_mask & col_true])
+    D = len(df[not_high_mask & col_false])
+
+    if A + B + C + D == 0:
+        print(f"Skipping {display_name}: analysis population is empty (all values unknown/NaN).")
+        output.append({"feature": display_name, "status": "skipped", "reason": "Analysis population empty — all values are unresolved/unknown"})
+        continue
+
     if A < 3 or B < 3 or C < 3 or D < 3:
-        print(f"Skipping {display_name}: Insufficient data for enrichment analysis (cell count < 3).")
-        output.append({"feature": display_name, "status": "skipped", "reason": "Insufficient data (cell count < 3)"})
+        reason = f"Insufficient data for enrichment analysis (cell count < 3; A={A},B={B},C={C},D={D})"
+        print(f"Skipping {display_name}: {reason}")
+        output.append({"feature": display_name, "status": "skipped", "reason": reason})
         continue
 
     table = [[A, B],

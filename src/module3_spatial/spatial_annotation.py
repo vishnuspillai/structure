@@ -163,15 +163,18 @@ df['is_binding_site'] = df['protein_position'].apply(lambda x: check_is_binding_
 df['is_interface'] = df['protein_position'].apply(lambda x: check_is_interface(x) if pd.notna(x) else False)
 df['is_tm_core'] = df['is_transmembrane'].fillna(False).astype(bool) & ~df['spatially_unresolved']
 
-# Enforce strict defaults for structurally unmapped variants to gracefully pass analysis safely
+# Enforce explicit state semantics for structurally unmapped variants:
+#   True  = feature assessed, variant IS in feature
+#   False = feature assessed, variant is NOT in feature
+#   'unknown' = variant could not be mapped; feature cannot be assessed
 df['is_binding_site'] = df['is_binding_site'].astype(object)
 df.loc[df['spatially_unresolved'], 'is_binding_site'] = 'unknown'
-df.loc[df['spatially_unresolved'], 'is_interface'] = False
-df.loc[df['spatially_unresolved'], 'is_tm_core'] = False
+df.loc[df['spatially_unresolved'], 'is_interface'] = 'unknown'
+df.loc[df['spatially_unresolved'], 'is_tm_core'] = 'unknown'
 if 'is_pore_region' in df.columns:
-    df.loc[df['spatially_unresolved'], 'is_pore_region'] = False
+    df.loc[df['spatially_unresolved'], 'is_pore_region'] = 'unknown'
 if 'is_transmembrane' in df.columns:
-    df.loc[df['spatially_unresolved'], 'is_transmembrane'] = False
+    df.loc[df['spatially_unresolved'], 'is_transmembrane'] = 'unknown'
 
 if ligand_mode == "force_off" or len(ligands) == 0:
     print("Warning: No ligand detected (or forced off) — binding site annotation skipped")

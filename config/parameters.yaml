@@ -1,6 +1,27 @@
 af_threshold: 0.001
 consequence_filter: missense_variant
-domains: {}
+domains:
+  extracellular_domain:
+  - 23
+  - 233
+  intracellular_loop:
+  - 316
+  - 466
+  m1:
+  - 234
+  - 254
+  m2:
+  - 259
+  - 279
+  m3:
+  - 292
+  - 315
+  m4:
+  - 467
+  - 489
+  signal_peptide:
+  - 1
+  - 22
 gene_symbol: CHRNA7
 genome_build: GRCh38
 ligand_mode: auto
@@ -9,6 +30,6 @@ max_variants: 1000
 output_dir: data/processed
 species: homo_sapiens
 structure_id: 7KOX
-transcript_id: null
-translation_id: null
-uniprot_id: null
+transcript_id: ENST00000306901
+translation_id: ENSP00000303727
+uniprot_id: P36544
