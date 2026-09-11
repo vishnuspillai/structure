@@ -167,14 +167,26 @@ df['is_tm_core'] = df['is_transmembrane'].fillna(False).astype(bool) & ~df['spat
 #   True  = feature assessed, variant IS in feature
 #   False = feature assessed, variant is NOT in feature
 #   'unknown' = variant could not be mapped; feature cannot be assessed
+#
+# All boolean flag columns must be cast to object dtype first so that pandas
+# can hold mixed types (bool True/False + string 'unknown') without a
+# FutureWarning / future TypeError.
 df['is_binding_site'] = df['is_binding_site'].astype(object)
+df['is_interface']    = df['is_interface'].astype(object)
+df['is_tm_core']      = df['is_tm_core'].astype(object)
+if 'is_pore_region' in df.columns:
+    df['is_pore_region'] = df['is_pore_region'].astype(object)
+if 'is_transmembrane' in df.columns:
+    df['is_transmembrane'] = df['is_transmembrane'].astype(object)
+
 df.loc[df['spatially_unresolved'], 'is_binding_site'] = 'unknown'
-df.loc[df['spatially_unresolved'], 'is_interface'] = 'unknown'
-df.loc[df['spatially_unresolved'], 'is_tm_core'] = 'unknown'
+df.loc[df['spatially_unresolved'], 'is_interface']    = 'unknown'
+df.loc[df['spatially_unresolved'], 'is_tm_core']      = 'unknown'
 if 'is_pore_region' in df.columns:
     df.loc[df['spatially_unresolved'], 'is_pore_region'] = 'unknown'
 if 'is_transmembrane' in df.columns:
     df.loc[df['spatially_unresolved'], 'is_transmembrane'] = 'unknown'
+
 
 if ligand_mode == "force_off" or len(ligands) == 0:
     print("Warning: No ligand detected (or forced off) — binding site annotation skipped")
