@@ -6,7 +6,7 @@ import urllib.parse
 import os
 import yaml
 
-Entrez.email = "vishnu@example.com"  # Please configure
+Entrez.email = "vishnu@example.com"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
@@ -33,14 +33,9 @@ def query_clinvar(rsid):
                     result = f_data.get('result', {})
                     for uid in ids:
                         record = result.get(uid, {})
-                        cg = record.get('clinical_significance', {})
-                        sig = cg.get('description', 'Not Provided')
-                        
+                        sig = record.get('clinical_significance', {}).get('description', 'Not Provided')
                         traits = record.get('trait_set', [])
-                        condition = "Not Provided"
-                        if traits:
-                            condition = traits[0].get('trait_name', 'Not Provided')
-                            
+                        condition = traits[0].get('trait_name', 'Not Provided') if traits else "Not Provided"
                         return sig, condition
         else:
             print(f"ClinVar HTTP {r.status_code} for {rsid}")
@@ -50,8 +45,7 @@ def query_clinvar(rsid):
 
 def query_pubmed(aa_change):
     query = f"{config.get('gene_symbol', 'CHRNA7')} AND {aa_change}"
-    encoded = urllib.parse.quote(query)
-    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term={encoded}&retmode=json"
+    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term={urllib.parse.quote(query)}&retmode=json"
     try:
         r = requests.get(url, timeout=15)
         if r.status_code == 200:
@@ -61,13 +55,11 @@ def query_pubmed(aa_change):
     return 0
 
 results = []
-for index, row in df.iterrows():
+for _, row in df.iterrows():
     rsid = row['rsid']
     aa_change = row['amino_acid_change']
-    
     cv_sig, cv_cond = query_clinvar(rsid)
     pm_hits = query_pubmed(aa_change)
-    
     results.append({
         'rsid': rsid,
         'aa_change': aa_change,
@@ -75,10 +67,9 @@ for index, row in df.iterrows():
         'ClinVar_condition': cv_cond,
         'PubMed_hits': pm_hits
     })
-    time.sleep(0.4) # Entrez rate limit
+    time.sleep(0.4)
 
 res_df = pd.DataFrame(results)
-
 output_path = os.path.join(PROJECT_ROOT, 'data', 'processed', f'{gene_symbol}_top10_clinical_lit.csv')
 res_df.to_csv(output_path, index=False)
 

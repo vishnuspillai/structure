@@ -1,4 +1,4 @@
-af_threshold: 0.001
+af_threshold: 0.01
 consequence_filter: missense_variant
 domains:
   extracellular_domain:
@@ -29,7 +29,7 @@ log_dir: logs
 max_variants: 1000
 output_dir: data/processed
 species: homo_sapiens
-structure_id: 7KOX
+structure_id: 9LH6
 transcript_id: ENST00000306901
 translation_id: ENSP00000303727
 uniprot_id: P36544

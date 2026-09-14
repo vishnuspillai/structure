@@ -3,15 +3,12 @@ import yaml
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List, Optional
-import asyncio
+from typing import Optional
 from src.api.orchestrator import PipelineOrchestrator
 
 app = FastAPI(title="Structural Prioritization API")
 
-# Setup CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -49,9 +46,7 @@ def get_config():
 def update_config(config: ConfigUpdate):
     with open(CONFIG_PATH, 'r') as f:
         data = yaml.safe_load(f)
-    
     data.update(config.dict())
-    
     with open(CONFIG_PATH, 'w') as f:
         yaml.safe_dump(data, f)
     return {"status": "success"}
@@ -60,18 +55,14 @@ def update_config(config: ConfigUpdate):
 def trigger_pipeline(req: PipelineRequest):
     with open(CONFIG_PATH, 'r') as f:
         data = yaml.safe_load(f)
-    
     data.update({
         "gene_symbol": req.gene_symbol,
         "af_threshold": req.af_threshold,
         "structure_id": req.structure_id,
         "species": req.species
     })
-    
     with open(CONFIG_PATH, 'w') as f:
         yaml.safe_dump(data, f)
-    
-    # We return success here; the frontend will use the websocket to actually stream the run
     return {"status": "ready"}
 
 @app.get("/steps")
@@ -88,12 +79,10 @@ def get_data(filename: str):
                 break
         else:
             raise HTTPException(status_code=404, detail="File not found")
-    
     if filename.endswith(".csv"):
         import pandas as pd
         import numpy as np
         df = pd.read_csv(file_path)
-        # Handle NaN/Inf for JSON compliance
         df = df.replace({np.nan: None, np.inf: None, -np.inf: None})
         return df.to_dict(orient="records")
     elif filename.endswith(".json"):
@@ -108,22 +97,15 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             cmd = json.loads(data)
-            
             if cmd.get("action") == "run_all":
                 pipeline_succeeded = True
                 for i in range(len(orchestrator.steps)):
                     await websocket.send_json({"type": "step_start", "index": i})
                     success, desc = await orchestrator.run_step(i)
-                    
                     while not orchestrator.output_queue.empty():
                         line = await orchestrator.output_queue.get()
                         await websocket.send_json({"type": "log", "message": line})
-                        
-                    await websocket.send_json({
-                        "type": "step_end", 
-                        "index": i, 
-                        "success": success
-                    })
+                    await websocket.send_json({"type": "step_end", "index": i, "success": success})
                     if not success:
                         pipeline_succeeded = False
                         await websocket.send_json({
@@ -133,7 +115,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         break
                 if pipeline_succeeded:
                     await websocket.send_json({"type": "pipeline_complete"})
-                
     except WebSocketDisconnect:
         pass
     except Exception as e:

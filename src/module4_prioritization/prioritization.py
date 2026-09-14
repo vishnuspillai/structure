@@ -10,18 +10,14 @@ with open(config_path, 'r') as f:
 gene_symbol = config.get("gene_symbol", "CHRNA7").lower()
 
 input_csv = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_spatial_annotated.csv")
-
 if not os.path.exists(input_csv):
-    raise FileNotFoundError(
-        f"Expected input file not found: {input_csv}. "
-        "Check Module 3 output."
-    )
+    raise FileNotFoundError(f"Expected input file not found: {input_csv}. Check Module 3 output.")
 
 df = pd.read_csv(input_csv)
 
 def compute_score(row):
     score = 0
-    # Population
+
     af = row.get('gnomAD_AF', np.nan)
     if pd.notna(af):
         if af < 1e-5:
@@ -29,15 +25,9 @@ def compute_score(row):
         elif 1e-5 <= af < 1e-4:
             score += 1
 
-    # Structural — only award points for explicit True/1.0 values.
-    # 'unknown' / NaN / None must NEVER score as positive.
-    # NOTE: After CSV round-trip, Python bool True becomes numpy float64 1.0.
-    # Use == True (not 'is True') so both bool True and float 1.0 are handled.
-    # The string 'unknown' evaluates to: 'unknown' == True -> False. Correct.
     struct_score = 0
     if row.get('is_binding_site') == True:
         struct_score += 4
-    # Accept either column name produced by different module versions
     is_pore = (row.get('is_pore_core') == True) or (row.get('is_pore_region') == True)
     if is_pore:
         struct_score += 4
@@ -45,12 +35,9 @@ def compute_score(row):
         struct_score += 2
     if (row.get('is_tm_core') == True) and not is_pore:
         struct_score += 1
-
-    # Cap total structural points
     struct_score = min(struct_score, 4)
     score += struct_score
 
-    # Functional
     cadd = row.get('cadd_phred', np.nan)
     if pd.notna(cadd):
         if cadd >= 30:
@@ -59,17 +46,17 @@ def compute_score(row):
             score += 2
         elif 20 <= cadd < 25:
             score += 1
-            
+
     polyphen = str(row.get('polyphen_pred', '')).lower()
     if 'probably_damaging' in polyphen:
         score += 2
     elif 'possibly_damaging' in polyphen:
         score += 1
-        
+
     sift = str(row.get('sift_pred', '')).lower()
     if 'deleterious' in sift:
         score += 1
-        
+
     return score
 
 df['priority_score'] = df.apply(compute_score, axis=1)
@@ -81,17 +68,16 @@ def get_category(s):
     return 'Very Low'
 
 df['priority_category'] = df['priority_score'].apply(get_category)
-
 df = df.sort_values(by='priority_score', ascending=False)
+
 output_path = os.path.join(root_dir, f"data/processed/{gene_symbol}_ranked_variants.csv")
 df.to_csv(output_path, index=False)
 
 output_txt = os.path.join(root_dir, 'mod4_output.txt')
 with open(output_txt, 'w', encoding='utf-8') as f:
-    f.write("Score distribution summary:\n")
+    f.write("Score distribution:\n")
     f.write(df['priority_score'].describe().to_string() + "\n")
-    f.write("\nCount per priority_category:\n")
+    f.write("\nCount per category:\n")
     f.write(df['priority_category'].value_counts().to_string() + "\n")
-    f.write("\nTop 15 variants (rsid, position, domain, score):\n")
+    f.write("\nTop 15 variants:\n")
     f.write(df[['rsid', 'protein_position', 'domain_region', 'priority_score']].head(15).to_string(index=False) + "\n")
-

@@ -8,6 +8,7 @@ import urllib.request
 import warnings
 from Bio import BiopythonWarning
 import yaml
+import json
 
 warnings.simplefilter('ignore', BiopythonWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -28,10 +29,7 @@ raw_dir = os.path.join(root_dir, "data/raw")
 os.makedirs(raw_dir, exist_ok=True)
 pdb_file = os.path.join(raw_dir, f"{pdb_id.upper()}.pdb")
 
-print("=====================================================")
 print("STEP 1 - Structure Retrieval")
-print("=====================================================")
-
 rcsb_url = f"https://data.rcsb.org/rest/v1/core/entry/{pdb_id.upper()}"
 res = requests.get(rcsb_url)
 metadata = res.json()
@@ -45,27 +43,20 @@ if not os.path.exists(pdb_file):
 
 parser = PDBParser(QUIET=True)
 structure = parser.get_structure(pdb_id.upper(), pdb_file)
+chains = sorted(set([chain.id for model in structure for chain in model]))
 
-chains = list(set([chain.id for model in structure for chain in model]))
-chains.sort()
-
-# Ligands
 ligands = set()
 for model in structure:
     for chain in model:
         for residue in chain:
-            if residue.id[0] != ' ' and residue.id[0] != 'W' and residue.resname != 'HOH': 
+            if residue.id[0] != ' ' and residue.id[0] != 'W' and residue.resname != 'HOH':
                 ligands.add(residue.resname)
 
-print(f"Resolution: {resolution} Angstroms")
-print(f"Experimental method: {exp_method}")
+print(f"Resolution: {resolution} Å  |  Method: {exp_method}")
 print(f"Chains: {', '.join(chains)}")
-print(f"Ligand identifiers: {', '.join(ligands)}")
+print(f"Ligands: {', '.join(ligands) if ligands else 'None'}")
 
-print("\n=====================================================")
-print("STEP 2 - SIFTS Mapping")
-print("=====================================================")
-
+print("\nSTEP 2 - SIFTS Mapping")
 sifts_url = f"https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/{pdb_id.lower()}"
 sifts_res = requests.get(sifts_url)
 if sifts_res.status_code != 200:
@@ -74,55 +65,48 @@ if sifts_res.status_code != 200:
 
 uniprot_to_pdb = {}
 unp_mappings = sifts_res.json().get(pdb_id.lower(), {}).get("UniProt", {}).get(uniprot_id, {}).get("mappings", [])
-
 for m in unp_mappings:
     if m["chain_id"] == "A":
-        unp_start = m["unp_start"]
-        unp_end = m["unp_end"]
-        pdb_start = m["start"]["residue_number"]
-        pdb_end = m["end"]["residue_number"]
-        
+        unp_start, unp_end = m["unp_start"], m["unp_end"]
+        pdb_start, pdb_end = m["start"]["residue_number"], m["end"]["residue_number"]
         if (unp_end - unp_start) == (pdb_end - pdb_start):
             for i in range(unp_end - unp_start + 1):
                 uniprot_to_pdb[unp_start + i] = pdb_start + i
         else:
-            print(f"Warning: Segment mismatch - UNP {unp_start}-{unp_end} vs PDB {pdb_start}-{pdb_end}")
+            print(f"Warning: Segment mismatch — UNP {unp_start}-{unp_end} vs PDB {pdb_start}-{pdb_end}")
 
 input_csv = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_annotated.csv")
 df = pd.read_csv(input_csv)
 variant_positions = df['protein_position'].dropna().astype(int).unique()
-
 mappable = [p for p in variant_positions if p in uniprot_to_pdb]
 unmapped = [p for p in variant_positions if p not in uniprot_to_pdb]
-
 coverage = (len(mappable) / len(variant_positions)) * 100 if len(variant_positions) > 0 else 0
 
-print(f"Mapping coverage: {coverage:.2f}% ({len(mappable)}/{len(variant_positions)} variants mapped)")
-print(f"Unmapped positions: {len(unmapped)}")
-
+print(f"Coverage: {coverage:.2f}% ({len(mappable)}/{len(variant_positions)} positions mapped)")
 if coverage < 85:
-    print(f"Warning: Coverage {coverage:.2f}% is below 85%, proceeding according to policy.")
+    print(f"Warning: Coverage {coverage:.2f}% is below 85%")
 
-import json
 mapping_report = {
     "total_variants": int(len(variant_positions)),
     "mapped_variants": int(len(mappable)),
     "unmapped_variants": int(len(unmapped)),
-    "mapping_coverage_percentage": float(coverage)
+    "mapping_coverage_percentage": float(coverage),
+    "ligand_available": len(ligands) > 0 and ligand_mode != "force_off",
+    "ligand_identifiers": list(ligands),
+    "ligand_mode": ligand_mode
 }
 with open(os.path.join(root_dir, f"data/processed/{gene_symbol}_mapping_report.json"), "w") as jf:
     json.dump(mapping_report, jf, indent=4)
 
-print("\n=====================================================")
-print("STEP 3 - Spatial Flags")
-print("=====================================================")
-
+print("\nSTEP 3 - Spatial Flags")
 model = structure[0]
 chain_A = model["A"]
-
 chain_A_atoms = list(chain_A.get_atoms())
 other_chain_atoms = [a for chain in model for a in chain.get_atoms() if chain.id != "A"]
-ligand_atoms = [a for chain in model for res in chain for a in res.get_atoms() if res.id[0] != ' ' and res.id[0] != 'W' and res.resname != 'HOH']
+ligand_atoms = [
+    a for chain in model for res in chain for a in res.get_atoms()
+    if res.id[0] != ' ' and res.id[0] != 'W' and res.resname != 'HOH'
+]
 
 ns_other_chains = NeighborSearch(other_chain_atoms) if other_chain_atoms else None
 ns_ligands = NeighborSearch(ligand_atoms) if ligand_atoms else None
@@ -133,9 +117,11 @@ def is_mappable(unp_pos):
 def check_is_binding_site(unp_pos):
     if ligand_mode == "force_off" or len(ligands) == 0:
         return 'unknown'
-    if not is_mappable(unp_pos): return False
+    if not is_mappable(unp_pos):
+        return False
     pdb_pos = uniprot_to_pdb.get(int(unp_pos))
-    if pdb_pos is None or ns_ligands is None: return False
+    if pdb_pos is None or ns_ligands is None:
+        return False
     try:
         res = chain_A[(' ', pdb_pos, ' ')]
         for atom in res.get_atoms():
@@ -146,9 +132,11 @@ def check_is_binding_site(unp_pos):
     return False
 
 def check_is_interface(unp_pos):
-    if not is_mappable(unp_pos): return False
+    if not is_mappable(unp_pos):
+        return False
     pdb_pos = uniprot_to_pdb.get(int(unp_pos))
-    if pdb_pos is None or ns_other_chains is None: return False
+    if pdb_pos is None or ns_other_chains is None:
+        return False
     try:
         res = chain_A[(' ', pdb_pos, ' ')]
         for atom in res.get_atoms():
@@ -159,18 +147,14 @@ def check_is_interface(unp_pos):
     return False
 
 df['spatially_unresolved'] = ~df['protein_position'].apply(is_mappable)
-df['is_binding_site'] = df['protein_position'].apply(lambda x: check_is_binding_site(x) if pd.notna(x) else 'unknown')
-df['is_interface'] = df['protein_position'].apply(lambda x: check_is_interface(x) if pd.notna(x) else False)
+df['is_binding_site'] = df['protein_position'].apply(
+    lambda x: check_is_binding_site(x) if pd.notna(x) else 'unknown'
+)
+df['is_interface'] = df['protein_position'].apply(
+    lambda x: check_is_interface(x) if pd.notna(x) else False
+)
 df['is_tm_core'] = df['is_transmembrane'].fillna(False).astype(bool) & ~df['spatially_unresolved']
 
-# Enforce explicit state semantics for structurally unmapped variants:
-#   True  = feature assessed, variant IS in feature
-#   False = feature assessed, variant is NOT in feature
-#   'unknown' = variant could not be mapped; feature cannot be assessed
-#
-# All boolean flag columns must be cast to object dtype first so that pandas
-# can hold mixed types (bool True/False + string 'unknown') without a
-# FutureWarning / future TypeError.
 df['is_binding_site'] = df['is_binding_site'].astype(object)
 df['is_interface']    = df['is_interface'].astype(object)
 df['is_tm_core']      = df['is_tm_core'].astype(object)
@@ -187,25 +171,16 @@ if 'is_pore_region' in df.columns:
 if 'is_transmembrane' in df.columns:
     df.loc[df['spatially_unresolved'], 'is_transmembrane'] = 'unknown'
 
-
 if ligand_mode == "force_off" or len(ligands) == 0:
-    print("Warning: No ligand detected (or forced off) — binding site annotation skipped")
+    print("Warning: No ligand detected — binding site annotation skipped")
 
 output_file = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_spatial_annotated.csv")
 df.to_csv(output_file, index=False)
-print(f"Saved spatial annotations to: {output_file}")
-print("Finished calculating spatial flags.")
+print(f"Saved: {output_file}")
 
-print("\n=====================================================")
-print("STEP 4 - Output")
-print("=====================================================")
-
-bs_perc = (df['is_binding_site'].eq(True).sum() / len(df)) * 100
-int_perc = (df['is_interface'].eq(True).sum() / len(df)) * 100
-tm_perc = (df['is_tm_core'].eq(True).sum() / len(df)) * 100
+print("\nSTEP 4 - Output")
+bs_perc   = (df['is_binding_site'].eq(True).sum()  / len(df)) * 100
+int_perc  = (df['is_interface'].eq(True).sum()     / len(df)) * 100
+tm_perc   = (df['is_tm_core'].eq(True).sum()       / len(df)) * 100
 unres_perc = (df['spatially_unresolved'].eq(True).sum() / len(df)) * 100
-
-print(f"% binding_site: {bs_perc:.2f}%")
-print(f"% interface: {int_perc:.2f}%")
-print(f"% tm_core: {tm_perc:.2f}%")
-print(f"Spatially unresolved: {unres_perc:.2f}%")
+print(f"binding_site: {bs_perc:.2f}%  |  interface: {int_perc:.2f}%  |  tm_core: {tm_perc:.2f}%  |  unresolved: {unres_perc:.2f}%")
