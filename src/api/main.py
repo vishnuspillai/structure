@@ -126,18 +126,17 @@ async def chat(req: ChatRequest):
                 types.Content(role=role, parts=[types.Part(text=msg.content)])
             )
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=history_contents + [
-                types.Content(role="user", parts=[types.Part(text=req.message)])
-            ],
+        chat_session = client.chats.create(
+            model="gemini-3.6-flash",
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
                 temperature=0.7,
                 max_output_tokens=1024,
             ),
+            history=history_contents,
         )
 
+        response = chat_session.send_message(req.message)
         return {"response": response.text}
 
     except Exception as e:

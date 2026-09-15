@@ -631,7 +631,7 @@ export default function App() {
                     </button>
                   </div>
                   <p className="text-[10px] text-white/20 mt-2 text-center">
-                    Powered by Gemini 2.5 Flash · Context: {config.gene_symbol.toUpperCase()} · {results.length} variants loaded
+                    Powered by Gemini 3.6 Flash · Context: {config.gene_symbol.toUpperCase()} · {results.length} variants loaded
                   </p>
                 </div>
               </div>
