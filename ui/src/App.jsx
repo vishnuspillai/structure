@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   Activity, Settings, Terminal, Database,
   ChevronRight, Play, CheckCircle2, AlertCircle, Loader2,
-  Table as TableIcon, Box as CubeIcon, Info, Zap, ChevronDown
+  Table as TableIcon, Box as CubeIcon, Info, ChevronDown
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -142,13 +142,6 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
     )
   };
 
-  // 4. Actionable Insight
-  let insightMsg = "Prioritize variants using sequence-based scores (e.g., CADD) and consider experimental validation for top-ranked variants, especially those located in conserved or domain-specific regions.";
-  if (isEnriched && enrichedFeatures.includes('is_binding_site')) {
-    insightMsg = "Prioritize binding-site variants for functional assays or ligand-docking analysis.";
-  } else if (isEnriched) {
-    insightMsg = "Investigate top-scoring structural variants experimentally for stability impacts.";
-  }
 
   // 5. Reliability Warnings
   let warnings = [];
@@ -159,7 +152,7 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
 
       {/* Interpretation & Confidence */}
-      <Card title="Scientific Interpretation" className="bg-accent/5 border-accent/20 col-span-1 lg:col-span-2">
+      <Card title="Scientific Interpretation" className="bg-accent/5 border-accent/20 col-span-1 lg:col-span-3">
         <p className="text-sm text-white/90 leading-relaxed font-medium">{interpMsg}</p>
 
         <div className="mt-4 pt-4 border-t border-white/5">
@@ -212,28 +205,19 @@ const SummaryPanel = ({ results, mappingReport, enrichmentResults }) => {
             </span>
           </div>
         </div>
-      </Card>
 
-      {/* Actionable Insights & Warnings */}
-      <Card title="Actionable Insights" className="col-span-1">
-        <div className="flex flex-col h-full justify-between gap-4">
-          <div>
-            <p className="text-xs text-secondary font-bold uppercase tracking-widest mb-2">What should you do next?</p>
-            <p className="text-sm text-white/80 leading-relaxed italic border-l-2 border-accent pl-3">{insightMsg}</p>
+        {warnings.length > 0 && (
+          <div className="mt-2 flex flex-col gap-1">
+            {warnings.map((w, i) => (
+              <div key={i} className="flex gap-2 items-start bg-danger/10 border border-danger/20 p-2 rounded">
+                <AlertCircle size={14} className="text-danger shrink-0 mt-0.5" />
+                <span className="text-[10px] text-danger/90 leading-tight">{w}</span>
+              </div>
+            ))}
           </div>
-
-          {warnings.length > 0 && (
-            <div className="mt-4 flex flex-col gap-1">
-              {warnings.map((w, i) => (
-                <div key={i} className="flex gap-2 items-start bg-danger/10 border border-danger/20 p-2 rounded">
-                  <AlertCircle size={14} className="text-danger shrink-0 mt-0.5" />
-                  <span className="text-[10px] text-danger/90 leading-tight">{w}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </Card>
+
 
       {/* Top Variants Expansion */}
       <Card className="col-span-1 md:col-span-2 lg:col-span-3 p-0 overflow-hidden border-white/5">
