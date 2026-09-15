@@ -3,7 +3,8 @@ import axios from 'axios';
 import {
   Activity, Settings, Terminal, Database,
   ChevronRight, Play, CheckCircle2, AlertCircle, Loader2,
-  Table as TableIcon, Box as CubeIcon, Info, ChevronDown
+  Table as TableIcon, Box as CubeIcon, Info, ChevronDown,
+  MessageSquare, Send, Zap, Bot, User
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -266,7 +267,12 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
 
+  const [chatHistory, setChatHistory] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+
   const logEndRef = useRef(null);
+  const chatEndRef = useRef(null);
   const ws = useRef(null);
 
   useEffect(() => {
@@ -280,6 +286,12 @@ export default function App() {
       logEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [logs]);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory, chatLoading]);
 
   const fetchConfig = async () => {
     try {
@@ -369,6 +381,35 @@ export default function App() {
     };
   };
 
+  const sendChatMessage = async () => {
+    const msg = chatInput.trim();
+    if (!msg || chatLoading) return;
+    const newHistory = [...chatHistory, { role: 'user', content: msg }];
+    setChatHistory(newHistory);
+    setChatInput('');
+    setChatLoading(true);
+    const context = {
+      gene_symbol: config.gene_symbol,
+      structure_id: config.structure_id,
+      mapping_coverage: mappingReport?.mapping_coverage_percentage?.toFixed(1),
+      top_variants: results.slice(0, 5),
+      enrichment: enrichmentResults || [],
+    };
+    try {
+      const res = await axios.post('http://localhost:8000/chat', {
+        message: msg,
+        history: chatHistory,
+        context,
+      });
+      setChatHistory(prev => [...prev, { role: 'assistant', content: res.data.response }]);
+    } catch (e) {
+      const detail = e.response?.data?.detail || e.message;
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `⚠️ ${detail}` }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
   return (
     <div className="flex w-full h-screen bg-background text-white overflow-hidden">
       {/* Sidebar */}
@@ -386,6 +427,7 @@ export default function App() {
         <nav className="flex-1 flex flex-col gap-1">
           <SidebarItem icon={Activity} label="Dashboard" active={activeTab === 'pipeline'} onClick={() => setActiveTab('pipeline')} />
           <SidebarItem icon={Database} label="Variant Data" active={activeTab === 'data'} onClick={() => setActiveTab('data')} />
+          <SidebarItem icon={MessageSquare} label="AI Assistant" active={activeTab === 'ai'} onClick={() => setActiveTab('ai')} />
           <SidebarItem icon={Settings} label="Configuration" active={activeTab === 'config'} onClick={() => setActiveTab('config')} />
         </nav>
 
@@ -484,6 +526,116 @@ export default function App() {
                 </div>
               </div>
             </>
+          )}
+
+          {activeTab === 'ai' && (
+            <div className="flex flex-col h-[calc(100vh-12rem)]">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
+                  <Bot size={20} className="text-accent" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">AI Assistant</h2>
+                  <p className="text-secondary text-sm">Ask questions about your {config.gene_symbol.toUpperCase()} analysis results</p>
+                </div>
+              </div>
+
+              <div className="flex-1 glass rounded-xl flex flex-col overflow-hidden border border-white/5">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                  {chatHistory.length === 0 && !chatLoading && (
+                    <div className="h-full flex flex-col items-center justify-center gap-6 opacity-60">
+                      <Bot size={48} className="text-accent/40" />
+                      <div className="text-center">
+                        <p className="text-white/60 text-sm font-medium mb-1">Pipeline context is pre-loaded</p>
+                        <p className="text-secondary text-xs">Ask about enrichment results, top variants, CADD scores, domain biology, or follow-up experiments</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full max-w-xl">
+                        {[
+                          `What does OR > 1 in the pore region mean for ${config.gene_symbol}?`,
+                          'Which top variant is most likely to affect channel function?',
+                          'Explain the CADD score threshold used in prioritization.',
+                          'What follow-up experiments would you suggest?'
+                        ].map((suggestion, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { setChatInput(suggestion); }}
+                            className="text-left text-xs text-secondary border border-white/10 rounded-lg p-3 hover:bg-accent/10 hover:border-accent/30 hover:text-white transition-all"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {chatHistory.map((msg, i) => (
+                    <div key={i} className={cn('flex gap-3', msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}>
+                      <div className={cn(
+                        'w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold',
+                        msg.role === 'user' ? 'bg-accent/20 text-accent border border-accent/30' : 'bg-white/5 text-secondary border border-white/10'
+                      )}>
+                        {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+                      </div>
+                      <div className={cn(
+                        'max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
+                        msg.role === 'user'
+                          ? 'bg-accent/15 border border-accent/20 text-white rounded-tr-sm'
+                          : 'bg-white/5 border border-white/10 text-white/90 rounded-tl-sm'
+                      )}>
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {chatLoading && (
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center bg-white/5 border border-white/10">
+                        <Bot size={14} className="text-secondary" />
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3">
+                        <div className="flex gap-1 items-center h-5">
+                          <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
+                          <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
+                          <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Input */}
+                <div className="border-t border-white/5 p-4 bg-black/20">
+                  <div className="flex gap-3 items-end">
+                    <textarea
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
+                      placeholder="Ask about your analysis results..."
+                      rows={1}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-accent outline-none resize-none transition-all placeholder-white/20 text-white"
+                      style={{maxHeight: '120px'}}
+                    />
+                    <button
+                      onClick={sendChatMessage}
+                      disabled={chatLoading || !chatInput.trim()}
+                      className={cn(
+                        'flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all',
+                        chatLoading || !chatInput.trim()
+                          ? 'bg-white/5 text-secondary cursor-not-allowed'
+                          : 'bg-accent text-white hover:brightness-110 active:scale-95 shadow-lg shadow-accent/20'
+                      )}
+                    >
+                      {chatLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-white/20 mt-2 text-center">
+                    Powered by Gemini 2.5 Flash · Context: {config.gene_symbol.toUpperCase()} · {results.length} variants loaded
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
 
           {activeTab === 'data' && (
