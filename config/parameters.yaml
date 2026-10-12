@@ -1,4 +1,4 @@
-af_threshold: 0.01
+af_threshold: 0.05
 consequence_filter: missense_variant
 domains:
   extracellular_domain:
