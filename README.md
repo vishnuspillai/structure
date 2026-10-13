@@ -38,8 +38,8 @@ $$\text{Priority Score} = S_{\text{AF}} + S_{\text{Structure}} + S_{\text{CADD}}
 | **Allele Frequency ($S_{\text{AF}}$)** | $\text{AF} < 10^{-5}$<br>$10^{-5} \le \text{AF} < 10^{-4}$<br>$\text{AF} \ge 10^{-4}$ or Missing (`NaN`) | $+2$<br>$+1$<br>$0$ | Max 2 |
 | **Structural Context ($S_{\text{Structure}}$)** | `is_binding_site == True`<br>`is_pore_region == True`<br>`is_interface == True`<br>`is_tm_core == True` (if not pore)<br>`False` or `'unknown'` | $+4$<br>$+4$<br>$+2$<br>$+1$<br>$0$ | **Max 4 (Hard Cap)** |
 | **CADD Phred ($S_{\text{CADD}}$)** | $\text{CADD} \ge 30$<br>$25 \le \text{CADD} < 30$<br>$20 \le \text{CADD} < 25$<br>$\text{CADD} < 20$ or Missing | $+3$<br>$+2$<br>$+1$<br>$0$ | Max 3 |
-| **PolyPhen-2 ($S_{\text{PolyPhen}}$)** | `probably_damaging`<br>`possibly_damaging`<br>`benign` or Missing | $+2$<br>$+1$<br>$0$ | Max 2 |
-| **SIFT ($S_{\text{SIFT}}$)** | `deleterious`<br>`tolerated` or Missing | $+1$<br>$0$ | Max 1 |
+| **PolyPhen-2 ($S_{\text{PolyPhen}}$)** | `probably_damaging`<br>`possibly_damaging`<br>`benign` or `Missing` | $+2$<br>$+1$<br>$0$ | Max 2 |
+| **SIFT ($S_{\text{SIFT}}$)** | `deleterious`<br>`tolerated` or `Missing` | $+1$<br>$0$ | Max 1 |
 | **Total Possible** | | | **Max 12** |
 
 ### Priority Risk Categories
