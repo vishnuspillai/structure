@@ -82,7 +82,7 @@ Expected output: `145/145 passed (0 failed, 8 skipped)` (skipped tests correspon
 ### 1. Command-Line Execution
 Run the full automated pipeline directly from the command line:
 ```bash
-python run_pipeline.py --gene CHRNA7 --structure 7KOX --af 0.01
+python run_pipeline.py --gene [gene] --structure [pdb] --af 0.01
 ```
 Parameters are loaded from `config/parameters.yaml` unless overridden via CLI flags.
 
