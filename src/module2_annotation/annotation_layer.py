@@ -84,10 +84,19 @@ def phase_a_coordinate_correction(df: pd.DataFrame, logger: logging.Logger, outp
     logger.info(f"Phase A: Mapped coordinates and AF for {len(coord_map)} RSIDs")
     df = df.copy()
     def get_coord(rsid, field):
-        return coord_map.get(rsid, {}).get(field)
-    df['chrom'] = df['rsid'].apply(lambda x: get_coord(x, 'chrom') or df.loc[df['rsid'] == x, 'chrom'].values[0])
-    df['pos'] = df['rsid'].apply(lambda x: get_coord(x, 'pos') or df.loc[df['rsid'] == x, 'pos'].values[0])
-    df['gnomAD_AF'] = df['rsid'].map(af_map)
+        val = coord_map.get(rsid, {}).get(field)
+        if not val and field in df.columns:
+            existing = df.loc[df['rsid'] == rsid, field].values
+            if len(existing) > 0 and pd.notna(existing[0]):
+                return existing[0]
+        return val
+
+    df['chrom'] = df['rsid'].apply(lambda x: get_coord(x, 'chrom'))
+    df['pos'] = df['rsid'].apply(lambda x: get_coord(x, 'pos'))
+    if 'gnomAD_AF' in df.columns:
+        df['gnomAD_AF'] = df['rsid'].apply(lambda x: af_map.get(x) if (x in af_map and pd.notna(af_map[x])) else df.loc[df['rsid'] == x, 'gnomAD_AF'].values[0])
+    else:
+        df['gnomAD_AF'] = df['rsid'].map(af_map)
     df['pos'] = pd.to_numeric(df['pos'], errors='coerce')
     zero_count = (df['gnomAD_AF'] == 0.0).sum()
     null_count = df['gnomAD_AF'].isnull().sum()
@@ -157,8 +166,9 @@ def phase_b_structural_domains(df: pd.DataFrame, logger: logging.Logger, config_
         return "Unassigned"
     df = df.copy()
     df['domain_region'] = df['protein_position'].apply(assign_domain)
-    df['is_transmembrane'] = df['domain_region'].isin(['m1', 'm2', 'm3', 'm4'])
-    df['is_pore_region'] = df['domain_region'] == 'm2'
+    # Use object dtype so Module 3 can later assign 'unknown' for unresolved residues
+    df['is_transmembrane'] = df['domain_region'].isin(['m1', 'm2', 'm3', 'm4']).astype(object)
+    df['is_pore_region']   = (df['domain_region'] == 'm2').astype(object)
     df['is_extracellular'] = df['domain_region'] == 'extracellular_domain'
     return df
 
@@ -224,7 +234,12 @@ def phase_c_functional_scores(df: pd.DataFrame, logger: logging.Logger, output_p
                     'polyphen_pred': polyphen_pred
                 }
     def get_vep(rsid, field):
-        return vep_map.get(rsid, {}).get(field)
+        val = vep_map.get(rsid, {}).get(field)
+        if val is None and field in df.columns:
+            existing = df.loc[df['rsid'] == rsid, field].values
+            if len(existing) > 0 and pd.notna(existing[0]):
+                return existing[0]
+        return val
     df = df.copy()
     df['cadd_phred'] = df['rsid'].apply(lambda x: get_vep(x, 'cadd_phred'))
     df['sift_score'] = df['rsid'].apply(lambda x: get_vep(x, 'sift'))
@@ -256,7 +271,10 @@ def main():
         gene_symbol = config.get('gene_symbol', 'CHRNA7').lower()
         input_csv = os.path.join(root_dir, f"data/processed/{gene_symbol}_rare_missense_variants.csv")
         df = pd.read_csv(input_csv)
-        af_threshold = config.get('af_threshold', 0.001)
+        if root_dir not in sys.path:
+            sys.path.insert(0, root_dir)
+        from src.raremiss_utils import get_af_threshold
+        af_threshold = get_af_threshold(config, source="config/parameters.yaml")
         corrected_csv_path = os.path.join(root_dir, f"data/processed/{gene_symbol}_missense_master_corrected.csv")
         df_corrected = phase_a_coordinate_correction(df, logger, corrected_csv_path, af_threshold)
         df_domain = phase_b_structural_domains(df_corrected, logger, config_path, config)

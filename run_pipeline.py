@@ -12,24 +12,29 @@ def run_pipeline():
     args, unknown = parser.parse_known_args()
 
     # Update config if args provided
-    if args.gene or args.structure or args.af:
+    if args.gene or args.structure or args.af is not None:
         config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config", "parameters.yaml")
         if os.path.exists(config_path):
             with open(config_path, "r") as f:
                 config = yaml.safe_load(f) or {}
         else:
             config = {}
-            
+
         if args.gene:
             config['gene_symbol'] = args.gene
         if args.structure:
             config['structure_id'] = args.structure
-        if args.af:
+        if args.af is not None:
+            # Explicit 0.0 is invalid — reject rather than silently ignore
+            if args.af == 0.0 or not (0 < args.af <= 1.0):
+                print(f"Error: --af {args.af} is invalid. Must be in (0, 1].")
+                sys.exit(1)
             config['af_threshold'] = args.af
-            
+
         with open(config_path, "w") as f:
             yaml.safe_dump(config, f)
         print(f"Updated config/parameters.yaml with: {args}")
+
     steps = [
         ("Module 1: Extract and filter rare baseline variants", "src/module1_variant_mining/variant_mining.py"),
         ("Module 2: Phase A/B/C Annotations", "src/module2_annotation/annotation_layer.py"),
@@ -59,6 +64,19 @@ def run_pipeline():
             
     print("\n================================================================================")
     print("=== Pipeline Execution Completed Successfully! ===")
+
+    # Record full run provenance and reproducibility metadata
+    root_dir = os.path.dirname(os.path.abspath(__file__))
+    if root_dir not in sys.path:
+        sys.path.insert(0, root_dir)
+    from src.raremiss_utils import record_run_metadata
+    config_path = os.path.join(root_dir, "config", "parameters.yaml")
+    with open(config_path, "r") as f:
+        cfg = yaml.safe_load(f) or {}
+    out_dir = os.path.join(root_dir, cfg.get("output_dir", "data/processed"))
+    gs = cfg.get("gene_symbol", "CHRNA7")
+    record_run_metadata(out_dir, cfg, gs)
+    print(f"Recorded run provenance metadata: {os.path.join(out_dir, f'{gs.lower()}_run_metadata.json')}")
 
 if __name__ == "__main__":
     run_pipeline()

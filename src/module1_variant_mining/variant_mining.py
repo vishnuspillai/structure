@@ -4,6 +4,7 @@ import logging
 import yaml
 import requests
 import pandas as pd
+import numpy as np
 from typing import Dict, List, Any
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -58,15 +59,29 @@ def get_ensembl_gene_info(symbol: str, species: str, logger: logging.Logger) -> 
         raise ValueError(f"Could not resolve IDs for {symbol}")
 
     uniprot_id = None
-    xrefs_url = f"https://rest.ensembl.org/xrefs/id/{translation_id}?external_db=Uniprot/SWISSPROT;content-type=application/json"
-    x_res = session.get(xrefs_url, timeout=120)
-    if x_res.status_code == 200 and len(x_res.json()) > 0:
-        uniprot_id = x_res.json()[0]['primary_id']
-    else:
-        xrefs_url_tr = f"https://rest.ensembl.org/xrefs/id/{translation_id}?external_db=Uniprot/SPTREMBL;content-type=application/json"
-        x_tr_res = session.get(xrefs_url_tr, timeout=120)
-        if x_tr_res.status_code == 200 and len(x_tr_res.json()) > 0:
-            uniprot_id = x_tr_res.json()[0]['primary_id']
+    try:
+        xrefs_url = f"https://rest.ensembl.org/xrefs/id/{translation_id}?external_db=Uniprot/SWISSPROT;content-type=application/json"
+        x_res = session.get(xrefs_url, timeout=30)
+        if x_res.status_code == 200 and len(x_res.json()) > 0:
+            uniprot_id = x_res.json()[0]['primary_id']
+        else:
+            xrefs_url_tr = f"https://rest.ensembl.org/xrefs/id/{translation_id}?external_db=Uniprot/SPTREMBL;content-type=application/json"
+            x_tr_res = session.get(xrefs_url_tr, timeout=30)
+            if x_tr_res.status_code == 200 and len(x_tr_res.json()) > 0:
+                uniprot_id = x_tr_res.json()[0]['primary_id']
+    except Exception as e:
+        logger.warning(f"Ensembl translation xref query failed ({e}); attempting UniProt REST fallback")
+
+    if not uniprot_id:
+        try:
+            up_url = f"https://rest.uniprot.org/uniprotkb/search?query=gene_exact:{symbol}+AND+organism_id:9606+AND+reviewed:true&format=json&fields=accession"
+            up_res = session.get(up_url, timeout=30)
+            if up_res.status_code == 200:
+                results = up_res.json().get('results', [])
+                if results and 'primaryAccession' in results[0]:
+                    uniprot_id = results[0]['primaryAccession']
+        except Exception as e:
+            logger.warning(f"UniProt REST fallback failed: {e}")
 
     if not uniprot_id:
         raise ValueError(f"Could not resolve UniProt ID for {translation_id}")
@@ -109,14 +124,18 @@ def get_variant_gnomad_af(rsids: List[str], logger: logging.Logger) -> Dict[str,
         for rsid, info in data.items():
             if not info:
                 continue
-            freq = 0.0
+            freq = np.nan
             for col in info.get("colocated_variants", []):
                 if "frequencies" in col:
                     for allele, pops in col["frequencies"].items():
-                        af = pops.get("gnomad", 0.0)
-                        if af:
-                            freq = max(freq, float(af))
-            af_map[rsid] = freq
+                        af = pops.get("gnomad")
+                        if af is not None:
+                            # Use maximum across any allele at this position
+                            af = float(af)
+                            if np.isnan(freq) or af > freq:
+                                freq = af
+            af_map[rsid] = freq  # NaN = frequency unknown
+
     logger.info(f"Resolved AF for {len(af_map)} variants")
     return af_map
 
@@ -164,11 +183,18 @@ def process_variants(variants: List[Dict[str, Any]], gene_symbol: str, transcrip
 
     rsids = df['rsid'].tolist()
     af_map = get_variant_gnomad_af(rsids, logger)
-    df['gnomAD_AF'] = df['rsid'].map(af_map).fillna(0.0)
+    df['gnomAD_AF'] = df['rsid'].map(af_map)  # NaN where not in af_map
 
-    df_rare = df[df['gnomAD_AF'] < af_threshold].copy()
-    logger.info(f"Filtered to {len(df_rare)} rare variants (AF < {af_threshold})")
-    print(f"Rare variants: {len(df_rare)}")
+    # Policy: variants with unknown AF (NaN) are RETAINED here for Module 2
+    # re-evaluation.  Module 2 Phase A will re-query with population breakdown
+    # and apply the AF threshold.  Variants with gnomAD_AF >= threshold that
+    # have a confirmed frequency are removed.
+    df_rare = df[(df['gnomAD_AF'].isna()) | (df['gnomAD_AF'] < af_threshold)].copy()
+    logger.info(
+        f"AF filtering: {len(df_rare)} variants retained "
+        f"(AF < {af_threshold} or unknown); removed {len(df) - len(df_rare)}"
+    )
+    print(f"Rare/unknown variants retained for Module 2: {len(df_rare)}")
     return df_rare
 
 def main():
@@ -181,7 +207,14 @@ def main():
         config = load_config(config_path)
         gene_symbol = config.get("gene_symbol", "CHRNA7")
         species = config.get("species", "homo_sapiens")
-        af_threshold = config.get("af_threshold", 0.001)
+        if root_dir not in sys.path:
+            sys.path.insert(0, root_dir)
+        from src.raremiss_utils import get_af_threshold
+        try:
+            af_threshold = get_af_threshold(config, source="config/parameters.yaml")
+        except ValueError as e:
+            logger.error(f"Invalid af_threshold in config: {e}")
+            sys.exit(1)
         max_variants = config.get("max_variants", None)
         output_dir = os.path.join(root_dir, config.get("output_dir", "data/processed"))
 

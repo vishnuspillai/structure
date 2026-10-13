@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import requests
 import os
+import sys
 import yaml
 from Bio.PDB import PDBParser
 import warnings
@@ -10,6 +11,10 @@ from Bio import BiopythonWarning
 warnings.simplefilter('ignore', BiopythonWarning)
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
+from src.raremiss_utils import load_spatial_csv
 config_path = os.path.join(root_dir, "config", "parameters.yaml")
 with open(config_path, 'r') as f:
     config = yaml.safe_load(f)
@@ -21,7 +26,7 @@ ligand_mode = config.get("ligand_mode", "auto")
 
 print("STEP 1 - Extract Top 10")
 input_csv = os.path.join(root_dir, f'data/processed/{gene_symbol}_ranked_variants.csv')
-df = pd.read_csv(input_csv)
+df = load_spatial_csv(input_csv)
 top10 = df.head(10).copy()
 
 cols_to_keep = [
@@ -45,13 +50,21 @@ parser = PDBParser(QUIET=True)
 structure = parser.get_structure(structure_id.upper(), pdb_file)
 model = structure[0]
 
+chains = [c.id for c in model]
+target_chain_id = config.get("chain_id", "A")
+if target_chain_id not in chains and len(chains) > 0:
+    target_chain_id = chains[0]
+
 sifts_url = f"https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/{structure_id}"
 sifts_res = requests.get(sifts_url)
 uniprot_to_pdb = {}
 if sifts_res.status_code == 200:
     unp_mappings = sifts_res.json().get(structure_id, {}).get("UniProt", {}).get(uniprot_id, {}).get("mappings", [])
+    mapped_chains = [m["chain_id"] for m in unp_mappings if m["chain_id"] in chains]
+    if target_chain_id not in mapped_chains and mapped_chains:
+        target_chain_id = mapped_chains[0]
     for m in unp_mappings:
-        if m["chain_id"] == "A":
+        if m["chain_id"] == target_chain_id:
             unp_start, unp_end = m["unp_start"], m["unp_end"]
             pdb_start, pdb_end = m["start"]["residue_number"], m["end"]["residue_number"]
             if (unp_end - unp_start) == (pdb_end - pdb_start):
@@ -66,28 +79,28 @@ all_heavy_coords = [
     for atom in res
     if atom.element != 'H'
 ]
-pentamer_com = np.mean(all_heavy_coords, axis=0)
+pentamer_com = np.mean(all_heavy_coords, axis=0) if all_heavy_coords else np.zeros(3)
 
-chain_A = model['A']
+target_chain = model[target_chain_id]
 ligand_atoms = [
     a for chain in model for res in chain for a in res
     if res.id[0] != ' ' and res.id[0] != 'W' and res.resname != 'HOH' and a.element != 'H'
 ]
 other_chain_atoms = [
     a for chain in model for res in chain for a in res
-    if chain.id != 'A' and res.id[0] == ' ' and a.element != 'H'
+    if chain.id != target_chain_id and res.id[0] == ' ' and a.element != 'H'
 ]
 
 def get_metrics(row):
     unp_pos = row['protein_position']
     domain = row['domain_region']
-    if pd.isna(unp_pos) or row['spatially_unresolved']:
+    if pd.isna(unp_pos) or row['spatially_unresolved'] is True:
         return pd.Series([np.nan, np.nan, np.nan])
     pdb_pos = uniprot_to_pdb.get(int(unp_pos))
     if pdb_pos is None:
         return pd.Series([np.nan, np.nan, np.nan])
     try:
-        target_res = chain_A[(' ', pdb_pos, ' ')]
+        target_res = target_chain[(' ', pdb_pos, ' ')]
     except KeyError:
         return pd.Series([np.nan, np.nan, np.nan])
     target_atoms = [a for a in target_res if a.element != 'H']
@@ -117,7 +130,7 @@ final_df = pd.concat([top10, metrics], axis=1)
 output_path = os.path.join(root_dir, f'data/processed/{gene_symbol}_top10_structural_metrics.csv')
 final_df.to_csv(output_path, index=False)
 
-output_txt = os.path.join(root_dir, 'output_mod5.txt')
+output_txt = os.path.join(root_dir, f'data/processed/{gene_symbol}_top10_structural_metrics_summary.txt')
 with open(output_txt, 'w', encoding='utf-8') as f:
     f.write(final_df.to_string(index=False))
 print(f"Saved: {output_path}")

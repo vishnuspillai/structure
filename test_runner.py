@@ -16,7 +16,7 @@ CONFIG_PATH = os.path.join(ROOT_DIR, "config", "parameters.yaml")
 DATA_DIR = os.path.join(ROOT_DIR, "data", "processed")
 RAW_DIR = os.path.join(ROOT_DIR, "data", "raw")
 
-def set_config(gene_symbol, structure_id, af_threshold=0.001, species="homo_sapiens"):
+def set_config(gene_symbol, structure_id, af_threshold=0.01, species="homo_sapiens"):
     """Write test parameters to config."""
     config = {
         "af_threshold": af_threshold,
@@ -35,14 +35,17 @@ def set_config(gene_symbol, structure_id, af_threshold=0.001, species="homo_sapi
         yaml.safe_dump(config, f)
     print(f"  Config set: gene={gene_symbol}, structure={structure_id}")
 
-def clear_processed():
-    """Remove all files in data/processed/."""
+def clear_processed(gene_symbol=None):
+    """Remove gene-specific output files in data/processed/."""
     if os.path.exists(DATA_DIR):
+        prefix = f"{gene_symbol.lower()}_" if gene_symbol else None
         for f in os.listdir(DATA_DIR):
+            if prefix and not f.lower().startswith(prefix):
+                continue
             fp = os.path.join(DATA_DIR, f)
             if os.path.isfile(fp):
                 os.remove(fp)
-    print("  Cleared data/processed/")
+    print(f"  Cleared data/processed/ for {gene_symbol if gene_symbol else 'all'}")
 
 def run_pipeline():
     """Execute the full pipeline and capture output. Returns (success, log_text)."""
@@ -73,12 +76,17 @@ def validate_outputs(gene_symbol):
     if len(df) == 0:
         warnings.append("variant_count is 0")
 
-    # 2. Check rare variant filtering
+    # 2. Check rare variant filtering — read actual threshold from config used in this run
+    with open(CONFIG_PATH, 'r') as _f:
+        _cfg = yaml.safe_load(_f) or {}
+    actual_threshold = _cfg.get('af_threshold', 0.01)
     if "gnomAD_AF" in df.columns:
-        above_threshold = (df["gnomAD_AF"] > 0.001).sum()
+        # Allow NaN (unknown AF); only flag confirmed-above-threshold variants
+        above_threshold = (df["gnomAD_AF"].fillna(0) > actual_threshold).sum()
+        report["af_threshold_used"] = actual_threshold
         report["variants_above_af_threshold"] = int(above_threshold)
         if above_threshold > 0:
-            warnings.append(f"{above_threshold} variants above AF threshold in ranked output")
+            warnings.append(f"{above_threshold} variants above AF threshold ({actual_threshold}) in ranked output")
 
     # 3. VEP annotations
     for col in ["cadd_phred", "sift_pred", "polyphen_pred"]:
@@ -108,7 +116,8 @@ def validate_outputs(gene_symbol):
 
     # 5. Ligand detection (binding site column)
     if "is_binding_site" in df.columns:
-        report["binding_site_count"] = int(df["is_binding_site"].sum())
+        # Column has object dtype: True (bool), False (bool), 'unknown' (str)
+        report["binding_site_count"] = int((df["is_binding_site"] == True).sum())  # noqa: E712
     else:
         report["binding_site_count"] = 0
         warnings.append("No is_binding_site column")
@@ -129,10 +138,10 @@ def validate_outputs(gene_symbol):
         report["high_priority_count"] = 0
 
     # 8. Enrichment ran
-    ci_file = os.path.join(DATA_DIR, f"{gs}_structural_ci.txt")
-    report["enrichment_ci_exists"] = os.path.exists(ci_file)
-    if not os.path.exists(ci_file):
-        warnings.append("Enrichment CI file missing")
+    json_file = os.path.join(DATA_DIR, f"{gs}_enrichment_results.json")
+    report["enrichment_results_exists"] = os.path.exists(json_file)
+    if not os.path.exists(json_file):
+        warnings.append("Enrichment results JSON file missing")
 
     report["warnings"] = warnings
     passed = len([w for w in warnings if w.startswith("FATAL")]) == 0
@@ -146,7 +155,7 @@ def run_test(gene_symbol, structure_id, test_num):
     print(f"{'='*60}")
 
     # 1. Clear & configure
-    clear_processed()
+    clear_processed(gene_symbol)
     set_config(gene_symbol, structure_id)
 
     # 2. Run pipeline

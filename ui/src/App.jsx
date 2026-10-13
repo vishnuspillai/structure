@@ -260,7 +260,7 @@ export default function App() {
   const [logs, setLogs] = useState([]);
   const [steps, setSteps] = useState([]);
   const [running, setRunning] = useState(false);
-  const [config, setConfig] = useState({ af_threshold: 0.001, gene_symbol: 'CHRNA7', consequence_filter: 'missense_variant', structure_id: '7kox', species: 'homo_sapiens' });
+  const [config, setConfig] = useState({ af_threshold: 0.01, gene_symbol: 'CHRNA7', consequence_filter: 'missense_variant', structure_id: '7kox', species: 'homo_sapiens' });
   const [results, setResults] = useState([]);
   const [mappingReport, setMappingReport] = useState(null);
   const [enrichmentResults, setEnrichmentResults] = useState(null);

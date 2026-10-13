@@ -1,6 +1,12 @@
 import os
+import sys
 import yaml
 import json
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -150,26 +156,38 @@ def get_config():
 
 @app.post("/config")
 def update_config(config: ConfigUpdate):
+    from src.raremiss_utils import validate_af_threshold
+    try:
+        val_af = validate_af_threshold(config.af_threshold, source="API /config")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     with open(CONFIG_PATH, 'r') as f:
         data = yaml.safe_load(f)
-    data.update(config.model_dump())
+    cfg_dict = config.model_dump()
+    cfg_dict["af_threshold"] = val_af
+    data.update(cfg_dict)
     with open(CONFIG_PATH, 'w') as f:
         yaml.safe_dump(data, f)
-    return {"status": "success"}
+    return {"status": "success", "effective_af_threshold": val_af}
 
 @app.post("/run_pipeline")
 def trigger_pipeline(req: PipelineRequest):
+    from src.raremiss_utils import validate_af_threshold
+    try:
+        val_af = validate_af_threshold(req.af_threshold, source="API /run_pipeline")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     with open(CONFIG_PATH, 'r') as f:
         data = yaml.safe_load(f)
     data.update({
         "gene_symbol": req.gene_symbol,
-        "af_threshold": req.af_threshold,
+        "af_threshold": val_af,
         "structure_id": req.structure_id,
         "species": req.species
     })
     with open(CONFIG_PATH, 'w') as f:
         yaml.safe_dump(data, f)
-    return {"status": "ready"}
+    return {"status": "ready", "effective_af_threshold": val_af}
 
 @app.get("/steps")
 def get_steps():

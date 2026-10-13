@@ -1,4 +1,4 @@
-af_threshold: 0.05
+af_threshold: 0.01
 consequence_filter: missense_variant
 domains:
   extracellular_domain:
@@ -24,12 +24,10 @@ domains:
   - 22
 gene_symbol: CHRNA7
 genome_build: GRCh38
-ligand_mode: auto
 log_dir: logs
-max_variants: 1000
 output_dir: data/processed
 species: homo_sapiens
-structure_id: 9LH6
+structure_id: 7kox
 transcript_id: ENST00000306901
 translation_id: ENSP00000303727
 uniprot_id: P36544
